@@ -1,8 +1,8 @@
 # Week 01 — Manual vs AI: Comparison
 
-**Name:**
-**Group:**
-**Date:**
+**Name:** David Torossyan 
+**Group:** Monday 16-19
+**Date:** 08.09.2026
 
 ---
 
@@ -10,16 +10,16 @@
 
 | | Manual (Part 1) | Rocket (Part 2) |
 | --- | --- | --- |
-| Language / stack used | | |
-| Time to first version that ran | | |
-| Time to all 4 test cases passing | | |
-| Number of attempts / prompts needed | | |
-| Lines of code you actually wrote | | |
-| Did it handle invalid marks (case B)? | | |
-| Did it handle an empty list (case D)? | | |
-| Did it use the ≥ 50 pass threshold? | | |
-| Output format matches the spec? | | |
-| Can you explain every line of it? | | |
+| Language / stack used | python | python |
+| Time to first version that ran | 5min | 1min |
+| Time to all 4 test cases passing | 30 min | 5 min |
+| Number of attempts / prompts needed | 1 | 1 |
+| Lines of code you actually wrote | all | none |
+| Did it handle invalid marks (case B)? | yes | yes |
+| Did it handle an empty list (case D)? | yes | yes |
+| Did it use the ≥ 50 pass threshold? | yes | yes |
+| Output format matches the spec? | yes | yes |
+| Can you explain every line of it? | yes | no |
 
 ## 2. Test results
 

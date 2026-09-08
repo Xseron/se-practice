@@ -25,8 +25,8 @@ README.md
 
 **What the tool did with it:** it read `week-01/README.md`, `manual/main.py`, `comparison.md` and
 `AI_USAGE.md` first, then asked no clarifying questions at all — it started working straight from
-the README. It also ran my manual solution unprompted and reported that it fails all four test
-cases.
+the README. It also ran my manual solution unprompted and reported that it failed all four test
+cases at that moment (I fixed that by hand afterwards — see `comparison.md` §1).
 
 **Questions it asked me:** none. (Compare with Rocket, which scores prompt completeness and refuses
 to build until it has asked its own questions. This tool has the opposite failure mode: it never

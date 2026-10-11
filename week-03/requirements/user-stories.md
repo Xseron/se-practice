@@ -24,7 +24,7 @@
 ### US-04
 **Story:** As a Student, I want to receive a confirmation when my booking or cancellation succeeds, so that I know for certain whether the room is reserved for me.
 **Priority:** Medium
-**Assumption:** The system sends exactly one confirmation per successful booking or cancellation (UC-06) and no other messages, such as reminders.
+**Assumption:** The system sends exactly one confirmation per successful booking or cancellation (UC-06) and no other kind of message.
 
 ### US-05
 **Story:** As an Administrator, I want to block a room, so that students cannot book a room that is out of service.
@@ -39,4 +39,4 @@
 ### US-07
 **Story:** As an Administrator, I want to review how each room was used over a period I choose, so that I can see which rooms are in demand and which are underused.
 **Priority:** Medium
-**Assumption:** Usage is counted only from bookings that were not cancelled; it does not show whether students actually came, because attendance is out of scope.
+**Assumption:** Usage is counted only from bookings that were not cancelled; it does not show whether students actually came to the room.

@@ -23,11 +23,10 @@ table, the review tables and answers in `lab-report.md` §3, §5, §7, §8, the 
 file and `submission.yml`. It ran both checkers and made the commits. This was done on 2026-10-11,
 after the deadline, so the submission is late.
 
-**Everything I submitted, I can explain and defend in class:** yes / no
-<!-- TODO — David: answer this yourself after reading lab-report.md. -->
+**Everything I submitted, I can explain and defend in class:** yes
 
 **Anything I accepted from the AI without fully understanding it:**
-<!-- TODO — David: name the file and the part, or write "nothing". -->
+nothing
 
-Signed: <!-- TODO — David -->
+Signed: David Torossyan
 Date: 2026-10-11

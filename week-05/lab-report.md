@@ -334,8 +334,41 @@ The gap is evidence, not code. The boundary-case script has not produced a confi
 
 Paste the **complete** terminal output. For Python: everything `python -m unittest -v` printed.
 
+Run from inside `code/` on Python 3.12.6, captured to a file by redirection and inserted by a script:
+
 ```text
-(paste here)
+$ python -m unittest -v
+test_blocked_room_is_rejected (test_booking.BookingTests.test_blocked_room_is_rejected) ... ok
+test_conflict_with_the_first_of_unsorted_bookings (test_booking.BookingTests.test_conflict_with_the_first_of_unsorted_bookings) ... ok
+test_conflict_with_the_last_booking_only (test_booking.BookingTests.test_conflict_with_the_last_booking_only) ... ok
+test_containing_existing_is_rejected (test_booking.BookingTests.test_containing_existing_is_rejected) ... ok
+test_empty_existing_is_allowed (test_booking.BookingTests.test_empty_existing_is_allowed) ... ok
+test_ending_after_midnight_is_rejected (test_booking.BookingTests.test_ending_after_midnight_is_rejected) ... ok
+test_ending_at_midnight_is_allowed (test_booking.BookingTests.test_ending_at_midnight_is_allowed) ... ok
+test_exactly_two_hours_is_allowed (test_booking.BookingTests.test_exactly_two_hours_is_allowed) ... ok
+test_existing_unchanged_after_false (test_booking.BookingTests.test_existing_unchanged_after_false) ... ok
+test_existing_unchanged_after_true (test_booking.BookingTests.test_existing_unchanged_after_true) ... ok
+test_existing_unchanged_when_rejected_before_the_loop (test_booking.BookingTests.test_existing_unchanged_when_rejected_before_the_loop) ... ok
+test_gap_exactly_between_two_bookings_is_allowed (test_booking.BookingTests.test_gap_exactly_between_two_bookings_is_allowed) ... ok
+test_identical_to_existing_is_rejected (test_booking.BookingTests.test_identical_to_existing_is_rejected) ... ok
+test_inside_existing_is_rejected (test_booking.BookingTests.test_inside_existing_is_rejected) ... ok
+test_one_minute_after_now_is_allowed (test_booking.BookingTests.test_one_minute_after_now_is_allowed) ... ok
+test_one_minute_overlap_at_the_end_is_rejected (test_booking.BookingTests.test_one_minute_overlap_at_the_end_is_rejected) ... ok
+test_over_two_hours_is_rejected (test_booking.BookingTests.test_over_two_hours_is_rejected) ... ok
+test_overlapping_the_start_of_existing_is_rejected (test_booking.BookingTests.test_overlapping_the_start_of_existing_is_rejected) ... ok
+test_partial_overlap_is_rejected (test_booking.BookingTests.test_partial_overlap_is_rejected) ... ok
+test_reversed_times_are_rejected (test_booking.BookingTests.test_reversed_times_are_rejected) ... ok
+test_start_before_now_is_rejected (test_booking.BookingTests.test_start_before_now_is_rejected) ... ok
+test_starting_now_is_rejected (test_booking.BookingTests.test_starting_now_is_rejected) ... ok
+test_string_time_is_not_handled (test_booking.BookingTests.test_string_time_is_not_handled) ... ok
+test_touching_end_is_allowed (test_booking.BookingTests.test_touching_end_is_allowed) ... ok
+test_touching_start_is_allowed (test_booking.BookingTests.test_touching_start_is_allowed) ... ok
+test_zero_length_is_rejected (test_booking.BookingTests.test_zero_length_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 0.003s
+
+OK
 ```
 
 ### 8.2 The checker, final run
@@ -344,10 +377,50 @@ Paste the **complete** output of `python tests/check_booking.py`. Paste it **las
 this file afterwards, run the checker again and paste again.
 
 ```text
-(paste here)
+$ python tests/check_booking.py
+Week 05 - can_book: the function, your tests, the evidence   (Path A)
+
+PASS   F1   the six cases from the task table           6 of 6 cases
+PASS   F2   AC1 time order and day bounds               5 of 5 cases
+PASS   F3   AC1 the start is in the future              5 of 5 cases
+PASS   F4   AC2 at most 120 minutes                     3 of 3 cases
+PASS   F5   AC3 a blocked room accepts nothing          2 of 2 cases
+PASS   F6   AC4 every kind of overlap is rejected       5 of 5 cases
+PASS   F7   AC4 touching endpoints are allowed          3 of 3 cases
+PASS   F8   AC4 every existing booking is checked       4 of 4 cases
+PASS   F9   AC5 the result is a real Boolean            3 of 3 cases
+PASS   F10  AC5 the inputs are left unchanged           2 of 2 cases
+PASS   O1   the assistant's first version is kept       v1 kept (37 lines)
+PASS   S1   your suite has at least 11 tests            26 tests
+PASS   S2   your suite is green on your own code        26 tests, OK
+PASS   M1   your tests catch a fault in AC1             caught by test_starting_now_is_rejected
+PASS   M2   your tests catch a fault in AC1             caught by test_ending_after_midnight_is_rejected
+PASS   M3   your tests catch a fault in AC1             caught by test_zero_length_is_rejected
+PASS   M4   your tests catch a fault in AC2             caught by test_exactly_two_hours_is_allowed
+PASS   M5   your tests catch a fault in AC3             caught by test_blocked_room_is_rejected
+PASS   M6   your tests catch a fault in AC4             caught by test_existing_unchanged_after_true, test_gap_exactly_between_two_bookings_is_allowed, test_touching_end_is_allowed and 1 more
+PASS   M7   your tests catch a fault in AC4             caught by test_conflict_with_the_first_of_unsorted_bookings, test_conflict_with_the_last_booking_only, test_existing_unchanged_after_false
+PASS   M8   your tests catch a fault in AC4             caught by test_containing_existing_is_rejected
+PASS   M9   your tests catch a fault in AC5             caught by test_existing_unchanged_after_true
+PASS   M10  your tests catch a fault in AC5             caught by test_existing_unchanged_after_false, test_existing_unchanged_after_true
+PASS   L1   report 1: tool, model and language          tool, model and language recorded
+PASS   L2   report 2: the plan, and what you corrected  plan pasted, 27 row(s) on what you corrected or verified
+PASS   L3   report 3: v1 mapped to AC1-AC4              6 conditions mapped, AC1-AC4 all present
+PASS   L4   report 4: at least 11 of your tests listed  26 tests listed
+PASS   L5   report 5: debugging evidence                3 row(s) of input / expected / actual
+PASS   L6   report 6: the critique, each point judged   critique pasted, 8 points judged
+PASS   L7   report 7: change log                        1 change-log row(s)
+PASS   L8   report 8.1: real output of your suite       suite output pasted
+PASS   L9   report 10: conclusion of 120-180 words      179 words
+------------------------------------------------------------------------------
+v1 (code/original/booking_v1.py): passes F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 - fails nothing - identical to your final: yes
+SUMMARY pass=32 fail=0 error=0   (32 checks)
+Behaviour and shape are clean. This says nothing about the quality of your review.
 ```
 
 ### 8.3 Path B only — three faults I planted myself
+
+Path A — not applicable.
 
 Break your own function on purpose, one line at a time, run your suite, restore the line.
 
@@ -421,9 +494,10 @@ a minute exactly when each one starts before the other ends. Both comparisons ar
 `(660, 720)` against `(600, 660)` the first is `660 < 660`, which is False, and a booking that
 starts when another ends is let through. With `<=` it would be rejected.
 
-The faults that survived longest were M9 and M10 (AC5). No table case looks at `existing` after
-the call, so an implementation that sorted or appended to the list passed all six. My early tests
-only asserted the return value. The missing tests had to assert on the input as well.
+Six faults survived the table cases, and all were caught in the same commit. M9 and M10 (AC5) were
+the hardest: an implementation that sorted or appended to the list passed all six table tests,
+because none of them looks at `existing` after the call. Every early test asserted only the
+return value; the missing tests had to check the input too.
 
 What I had to decide myself: what happens to a non-integer time (not-handled, §9.2), and what to
 do with an assistant that claimed it had created files and run a check script it never ran (§3).

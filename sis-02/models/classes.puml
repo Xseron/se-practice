@@ -1,0 +1,64 @@
+@startuml registration_domain
+' FINAL class diagram: Prompt D's revision (report.md section 11, B4), checked against the render; no later edit.
+title Domain model: course registration (R1–R5)
+hide circle
+hide empty methods
+skinparam classAttributeIconSize 0
+
+class Student {
+  studentId : String {id}
+  name : String
+}
+
+class Course {
+  code : String {id}
+  title : String
+}
+
+class CourseOffering {
+  semester : String
+  section : String
+  capacity : Integer {capacity > 0}
+  /availablePlaces : Integer
+  enroll(student : Student)
+}
+
+class Enrollment
+
+Course "1" -- "0..*" CourseOffering : is scheduled as >
+CourseOffering "1" -- "0..*" Enrollment : receives >
+Student "1" -- "0..*" Enrollment : holds >
+
+note left of CourseOffering
+  Catalog (R1) is a view of the offerings of one semester,
+  selected by the semester value: course code, title,
+  section and /availablePlaces.
+  It is derived on request, not stored, and reserves nothing (A1).
+  Full offerings stay listed with 0 places (A6).
+end note
+
+note right of CourseOffering
+  <b>C1 Capacity (R2)</b>
+  context CourseOffering
+  inv: capacity > 0
+  inv: enrollment->size() <= capacity
+
+  <b>C2 Derived availability (R1, R4, A2)</b>
+  context CourseOffering::availablePlaces : Integer
+  derive: capacity - enrollment->size()
+  With C1: 0 <= availablePlaces <= capacity
+end note
+
+note bottom of Enrollment
+  <b>C3 Uniqueness (R3)</b>
+  context CourseOffering
+  inv: enrollment->isUnique(student)
+  At most one Enrollment per (Student, CourseOffering) pair.
+  Nothing is required across sections of one course (A5).
+
+  C1 and C3 are checked, and the Enrollment is created,
+  in one atomic operation per offering (A3), so concurrent
+  requests cannot violate them.
+end note
+
+@enduml

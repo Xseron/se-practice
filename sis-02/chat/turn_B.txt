@@ -1,0 +1,67 @@
+Using my approved scenario, R1–R5, stories and criteria below, return separate PlantUML code blocks for a sequence diagram and a domain class diagram.
+Sequence: include catalog browsing and guarded success, full-course and duplicate outcomes. Model final checks and creation as one atomic operation.
+Class: show domain concepts, useful attributes and multiplicities. State the capacity and uniqueness constraints. Explain assumptions and any technical lifelines.
+
+Scenario:
+A student browses an electronic course catalog, chooses a course offering and requests
+registration. Each offering has a limited number of places.
+
+A Course describes a subject. A CourseOffering is one scheduled section in one semester.
+Registration always targets a specific offering.
+
+Assume that the student is signed in, the selected offering exists, and its capacity is a
+positive whole number.
+
+Exclude payments, prerequisites, timetable clashes, waiting lists and cancellation. Use
+fictional students and courses.
+
+Rules:
+R1. Catalog: Show the course code, title, offering and available places for one semester.
+R2. Capacity: Recheck current availability when registering. Enrollment must never exceed the offering's capacity.
+R3. Duplicates: A student may have at most one enrollment in the same offering. Reject a repeat request.
+R4. Success: Create exactly one Enrollment linking the student and offering, update availability and return a confirmation.
+R5. Rejection: Explain "course full" or "already enrolled". Create no enrollment and leave the enrollment count unchanged.
+
+These rules define this assignment. A catalog view does not reserve a place. Model the final
+checks and enrollment creation as one atomic operation so competing requests cannot take the same
+last place. A note describing the atomic operation is sufficient; database implementation is
+outside this assignment.
+
+Approved scope and assumptions:
+
+**Scope:** One signed-in student browses the catalog of one semester, which shows each offering's course code, title, section and available places, picks a course offering and asks to register. When the request arrives the system rechecks, in one atomic operation, whether the student already holds an Enrollment in that offering and whether a place is still free, then either creates exactly one Enrollment and confirms it, or rejects the request with "already enrolled" or "course full" and changes nothing.
+
+**Out of scope:** payments, prerequisites, timetable clashes, waiting lists and cancellation, which the scenario excludes. Also not modeled: how the confirmation is delivered, technical failures outside R5, and any database detail beyond a note that the final checks and the creation are atomic.
+
+**Assumptions:**
+
+1. A catalog view reserves nothing; the available places a student saw can be out of date when the request arrives, which is why R2 rechecks them.
+2. Available places = capacity − number of Enrollments of the offering. They are derived, not stored, so creating the Enrollment is the availability update that R4 asks for (B1 uncertainty U-04).
+3. The duplicate check, the capacity check and the creation of the Enrollment form one atomic operation per offering. This covers two students asking for the last place at once and also one student sending the same request twice at once (B1 suggested extending my initial assumption 4 to duplicates; accepted).
+4. If a request is both a repeat and for a full offering, the reason is "already enrolled": the duplicate check runs first, because that answer is true whatever the capacity (B1 uncertainty U-01, my decision).
+5. R3 limits repeats in the same offering only. Whether a student may hold places in two sections of one course is not decided by the rules, and no policy is added for it (U-02).
+6. Full offerings stay in the catalog with 0 available places; the catalog is asked for one semester at a time (U-05, U-06).
+7. Example data is fictional: students Lena Ortiz (ST-1001), Tomas Reyes (ST-1002) and Mira Holm (ST-1003); courses SE-201 "Software Requirements" and MA-110 "Discrete Structures"; semester Autumn 2026.
+
+Approved user stories and acceptance criteria:
+
+### US-01 — Browse offerings
+
+**US-01:** As a student, I want to see one semester's course offerings with their available places, so that I can choose an offering to register for.
+
+- **AC-01** (R1): Given the Autumn 2026 catalog holds SE-201 "Software Requirements" Section A (capacity 2, 0 Enrollments) and MA-110 "Discrete Structures" Section A (capacity 20, 20 Enrollments), When Lena views the catalog for Autumn 2026, Then each offering is listed as its own entry with its course code, course title, section and available places, SE-201 Section A showing 2 and MA-110 Section A showing 0.
+- **AC-02** (R1, R2): Given SE-201 Section A has capacity 2 and 1 Enrollment, When Tomas views the Autumn 2026 catalog, Then SE-201 Section A shows 1 available place (capacity minus Enrollments), And the enrollment count stays 1, because viewing the catalog holds no place for Tomas.
+
+### US-02 — Register for an offering
+
+**US-02:** As a student, I want to request registration for the offering I chose, so that I get a confirmed place in it while a place is free.
+
+- **AC-03** (R2, R4): Given SE-201 Section A has capacity 2 and 0 Enrollments and Lena has no Enrollment in it, When Lena requests registration for SE-201 Section A, Then availability is rechecked at that moment, exactly one Enrollment linking Lena and SE-201 Section A is created, the enrollment count becomes 1 with 1 place left, And Lena receives a confirmation.
+- **AC-04** (R2, R4, R5): Given SE-201 Section A has capacity 2 and 1 Enrollment and neither Tomas nor Mira holds an Enrollment in it, When Tomas and Mira request registration for SE-201 Section A at almost the same moment, Then exactly one of them gets a new Enrollment and a confirmation and the enrollment count becomes 2 with no place left, And the other is rejected with "course full" and gets no Enrollment, so the count never exceeds 2.
+
+### US-03 — Receive a clear rejection
+
+**US-03:** As a student, I want a clear reason when my registration request is rejected, so that I know why and that nothing was recorded.
+
+- **AC-05** (R2, R5): Given Mira saw 1 available place for SE-201 Section A in the catalog, that place has since been taken so the offering now has 2 Enrollments for capacity 2, and Mira holds no Enrollment in it, When Mira requests registration for SE-201 Section A, Then the request is rejected with the reason "course full", And no Enrollment is created and the enrollment count stays 2.
+- **AC-06** (R3, R5): Given SE-201 Section A has capacity 2 and 1 Enrollment, which is Lena's, When Lena requests registration for SE-201 Section A again, Then the request is rejected with the reason "already enrolled", And no Enrollment is created, the enrollment count stays 1 and Lena still holds exactly one Enrollment in it.

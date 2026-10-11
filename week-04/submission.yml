@@ -13,28 +13,28 @@ schema: 1
 week: "04"
 
 student:
-  name:
-  student_id:          # as in KBTU records, e.g. 24B031016
-  github:              # your GitHub username, the one that owns the repo
+  name: David Torossyan
+  student_id: TODO # as in KBTU records, e.g. 24B031016
+  github: Xseron # your GitHub username, the one that owns the repo
 
 assistant:
-  tool:                # e.g. ChatGPT, Claude, Gemini, DeepSeek, Grok
-  model:               # the exact model name with its version. "ChatGPT" is not a model name.
+  tool: Claude Code (headless claude -p, v2.1.296) # e.g. ChatGPT, Claude, Gemini, DeepSeek, Grok
+  model: claude-opus-5-5 (Claude Opus 5.5) # the exact model name with its version. "ChatGPT" is not a model name.
 
 counts:
-  behaviour_diagram:   # sequence | activity | both   (must match the files in models/)
-  stories_source:      # week-03 | reference
-  use_cases:           # how many use cases your REVISED use-case diagram has
-  change_log_rows:     # rows in lab-report.md §8 (the task asks for 3 or more)
+  behaviour_diagram: sequence # sequence | activity | both   (must match the files in models/)
+  stories_source: reference # week-03 | reference
+  use_cases: 6 # how many use cases your REVISED use-case diagram has
+  change_log_rows: 5 # rows in lab-report.md §8 (the task asks for 3 or more)
 
 checker:
   # Numbers from YOUR last run of: python tests/check_models.py
   # They must add up to the number of checks it runs. Report them as they came out.
   # A FAIL you report and explain in lab-report.md costs you nothing. A hidden one costs the criterion.
-  pass:
-  fail:
-  error:
-  commit:              # the commit you ran the checker at: git rev-parse --short HEAD
+  pass: 37
+  fail: 0
+  error: 0
+  commit: 3a6ebc0 # the commit you ran the checker at: git rev-parse --short HEAD
                        # (normally the commit just before you commit this file — that is fine)
   kept_fails: []       # the check IDs that still FAIL and are explained in lab-report.md §9, e.g. [CL5]
 
@@ -42,8 +42,8 @@ assumptions:
   # The scenario does not settle these two. Decide, declare, and defend the decision in lab-report.md §4.3.
   # Either answer is acceptable. Not deciding is not.
   # (Week 03's third question, exactly two hours, is settled by R1 this week: "at most 2 hours" — allowed.)
-  overlap_touching_bookings:   # allowed | not-allowed   (a booking ending 14:00 and one starting 14:00)
-  blocking_a_booked_room:      # keep-bookings | cancel-bookings   (what R3 does to bookings that already exist)
+  overlap_touching_bookings: allowed # allowed | not-allowed   (a booking ending 14:00 and one starting 14:00)
+  blocking_a_booked_room: keep-bookings # keep-bookings | cancel-bookings   (what R3 does to bookings that already exist)
 
 traceability:
   # Empty lists are allowed — if you claim full coverage, the checker and I will test that claim.
@@ -54,11 +54,13 @@ review_findings:
   # Three or more. One line each, and each one names the diagram element it is about.
   # Worthless: "the AI made mistakes in the class diagram".
   # Worth everything: "Room *-- Booking was a composition; a booking is not part of a room — plain association 1 / 0..*".
-  -
-  -
-  -
+  - "sequence alt guard [not blocked and overlapping is empty]: PlantUML ate 'not', so the rendered success branch reads 'blocked and overlapping is empty' (R3 inverted); guards rewritten without brackets"
+  - "class Administrator: no rule or story needs its state, its operations only delegate to Room.block/unblock (US-04, US-05); removed"
+  - "class R2 note was on Room, README puts it on Booking; moved, with the half-open interval (A2)"
+  - "use-case Block room: the AI left 'what happens to existing bookings' open although the diagram depends on it (R3, US-04); declared A1 keep-bookings"
+  - "critique N1 rejected: it asked for BookingService/Repository classes in the domain class diagram (CL6)"
 
 honesty:
-  originals_unedited:                 # yes | no   — models/original/ holds the AI's first replies as returned
-  can_explain_everything_submitted:   # yes | no   — "no" is an accepted answer, name the part in lab-report.md
-  ai_usage_disclosed:                 # yes | no   — AI_USAGE.md is required every week
+  originals_unedited: yes # yes | no   — models/original/ holds the AI's first replies as returned
+  can_explain_everything_submitted: TODO # yes | no   — "no" is an accepted answer, name the part in lab-report.md
+  ai_usage_disclosed: yes # yes | no   — AI_USAGE.md is required every week

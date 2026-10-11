@@ -20,6 +20,7 @@ end note
 alt R1 violated
   BS --> Student : rejected(INVALID_TIME_SLOT)
 else time slot valid
+  group atomic per room (A4)
   BS -> BR : isRoomBlocked(roomId)
   activate BR
   BR --> BS : blocked : Boolean
@@ -28,7 +29,7 @@ else time slot valid
   alt room blocked (R3)
     BS --> Student : rejected(ROOM_BLOCKED)
   else room not blocked
-    BS -> BR : findActiveOverlapping(roomId, start, start + duration)
+    BS -> BR : findActiveOverlapping(roomId, start, duration)
     activate BR
     BR --> BS : overlapping : Booking[*]
     deactivate BR
@@ -38,21 +39,22 @@ else time slot valid
     end note
 
     alt overlapping not empty (R2)
-      BS --> Student : rejected(ALREADY_BOOKED)
+      BS --> Student : rejected(OVERLAPS_EXISTING_BOOKING)
     else slot free
       BS -> BS : create Booking(studentId, roomId, start, duration, ACTIVE) with its Confirmation
       BS -> BR : save(booking)
       activate BR
       BR --> BS : saved(bookingId)
       deactivate BR
-      BS --> Student : confirmation(code, bookingId, roomId, start, end)
+      BS --> Student : confirmation : Confirmation
       note right : R4
     end
+  end
   end
 end
 
 note over BS, BR
-  A6: the blocked check, the overlap query and save run as one
+  A4: the blocked check, the overlap query and save run as one
   atomic unit per room, so two concurrent requests cannot both pass R2.
 end note
 

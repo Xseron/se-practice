@@ -6,7 +6,7 @@ skinparam shadowing false
 
 class Student {
   - studentId : String
-  - name : String
+  ' US-03: the student picks which own booking to cancel
   + activeBookings() : Booking[*]
 }
 
@@ -14,6 +14,7 @@ class Room {
   - roomId : String
   - name : String
   - blocked : Boolean = false
+  + isBlocked() : Boolean
   + isFreeAt(start : DateTime, duration : Duration) : Boolean
   + block()
   + unblock()
@@ -58,6 +59,8 @@ end note
 note right of Room
   R3: no new Booking while blocked = true.
   Blocking keeps existing bookings (A1).
+  isFreeAt = not blocked AND no ACTIVE booking
+  overlaps [start, start + duration) (A3)
 end note
 
 note right of Confirmation

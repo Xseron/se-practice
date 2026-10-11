@@ -41,6 +41,16 @@ note right of UC_Block
   Existing bookings are kept (A1).
 end note
 
+note right of UC_Unblock
+  US-05 / R3: once unblocked, new bookings are
+  accepted again (still subject to R1, R2).
+end note
+
+note right of UC_View
+  US-02: "free" = not blocked (R3) and no ACTIVE
+  booking overlaps the slot (R2) - A3
+end note
+
 note right of UC_Cancel
   US-03: only the student who made the booking;
   the cancelled booking stops counting for R2.

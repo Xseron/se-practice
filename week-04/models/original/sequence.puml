@@ -1,0 +1,59 @@
+@startuml book_room_sequence
+title Book room (US-01) - rules R1, R2, R3, R4
+
+skinparam shadowing false
+autonumber
+
+actor Student
+participant "BookingService" as BS <<service>>
+participant "BookingRepository" as BR <<repository>>
+
+Student -> BS : bookRoom(studentId, roomId, start, duration)
+activate BS
+
+' ---- Validate R1: needs only the request data ----
+BS -> BS : validateTimeSlot(start, duration)
+note right
+  R1: start > now
+  and duration > 0
+  and duration <= 2 h
+end note
+
+break [R1 violated]
+  BS --> Student : rejected(INVALID_TIME_SLOT)
+end
+
+note over BS, BR
+  The steps below run in one transaction per room (assumption A6),
+  so two concurrent requests cannot both pass the R2 check.
+end note
+
+' ---- Validate R3 ----
+BS -> BR : isRoomBlocked(roomId)
+activate BR
+BR --> BS : blocked : Boolean
+deactivate BR
+note right : R3
+
+' ---- Validate R2 ----
+BS -> BR : findActiveOverlapping(roomId, start, start + duration)
+activate BR
+BR --> BS : overlapping : Booking[*]
+deactivate BR
+note right : R2 (ACTIVE bookings only)
+
+' ---- Attempt the reservation ----
+alt [not blocked and overlapping is empty]
+  BS -> BS : booking = new Booking(studentId, roomId, start, duration, ACTIVE)\nbooking.confirmation = new Confirmation(code, now)
+  BS -> BR : save(booking)
+  activate BR
+  BR --> BS : saved(bookingId)
+  deactivate BR
+  BS --> Student : confirmation(code, bookingId, roomId, start, end)
+  note right : R4
+else [blocked (R3) or overlapping not empty (R2)]
+  BS --> Student : rejected(ROOM_UNAVAILABLE, reason = BLOCKED | ALREADY_BOOKED)
+end
+
+deactivate BS
+@enduml

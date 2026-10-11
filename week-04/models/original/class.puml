@@ -1,0 +1,83 @@
+@startuml smart_campus_domain
+title Smart Campus - Study Room Booking\nDomain class diagram
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+class Student {
+  - studentId : String
+  - name : String
+  + activeBookings() : Booking[*]
+}
+
+class Administrator {
+  - adminId : String
+  - name : String
+  + blockRoom(room : Room)
+  + unblockRoom(room : Room)
+  + reviewUsage(from : DateTime, to : DateTime) : Booking[*]
+}
+
+class Room {
+  - roomId : String
+  - name : String
+  - blocked : Boolean = false
+  + isFreeAt(start : DateTime, duration : Duration) : Boolean
+  + book(student : Student, start : DateTime, duration : Duration) : Booking
+  + block()
+  + unblock()
+  + bookingsBetween(from : DateTime, to : DateTime) : Booking[*]
+}
+
+class Booking {
+  - bookingId : String
+  - start : DateTime
+  - duration : Duration
+  - status : BookingStatus = ACTIVE
+  + end() : DateTime
+  + isActive() : Boolean
+  + overlaps(start : DateTime, duration : Duration) : Boolean
+  + isOwnedBy(student : Student) : Boolean
+  + cancel(requester : Student)
+}
+
+class Confirmation {
+  - code : String
+  - issuedAt : DateTime
+}
+
+enum BookingStatus {
+  ACTIVE
+  CANCELLED
+}
+
+' Associations (stored, structural links)
+Student "1" -right- "0..*" Booking : makes >
+Booking "0..*" -right- "1" Room : is for >
+Booking "1" -down- "1" Confirmation : produces >
+
+' Dependencies (uses, no stored link)
+Administrator .down.> Room : blocks / unblocks
+Administrator .down.> Booking : reviews
+
+' Layout only
+BookingStatus -[hidden]right- Confirmation
+
+note top of Booking
+  R1 (checked at creation):
+  start > now
+  duration > 0 and duration <= 2 h
+end note
+
+note right of Room
+  R2: no two ACTIVE bookings of this
+  room overlap in time
+  R3: book() is rejected while
+  blocked = true
+end note
+
+note right of Confirmation
+  R4: issued once, when the
+  booking is created
+end note
+@enduml

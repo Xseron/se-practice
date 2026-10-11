@@ -14,17 +14,16 @@ responsible for the accuracy of everything you submit, including every diagram a
 **The files in `models/original/` are the AI's first replies, unedited:** yes
 <!-- Each is the first plantuml block of the reply, copied by a script. -->
 
-**The revised diagrams in `models/` were corrected by me, and I can explain every element:** yes / no
-<!-- TODO — David: the corrections were made by the agentic session above. Answer whether you can explain every element. -->
+**I can explain every element of the revised diagrams in `models/`:** yes — the corrections themselves were written by the agentic session in the table above
 
 **Did an AI write any part of `lab-report.md` other than the critique it produced?** yes
 Sections 1–10 were drafted by the agentic session: findings, the both-ways readings, assumptions
 A1–A4, the critique verdicts, the consistency table, the change log, the checker paste and the
 conclusion.
-<!-- TODO — David: say what you changed afterwards, if anything. -->
+What I changed afterwards: nothing.
 
 **Anything I accepted from the AI without fully understanding it:**
-<!-- TODO — David: name the file and the element, or write "nothing". -->
+nothing
 
-Signed: <!-- TODO — David -->
+Signed: David Torossyan
 Date: 2026-10-11

@@ -212,18 +212,41 @@ Base input for every row unless the row says otherwise: `now=540, blocked=False,
 
 | # | Test name | Request (start, end) | What differs from the base input | Expected | AC | Result on v1 | Result on final |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | | | | | | | |
-| 2 | | | | | | | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
-| 5 | | | | | | | |
-| 6 | | | | | | | |
-| 7 | | | | | | | |
-| 8 | | | | | | | |
-| 9 | | | | | | | |
-| 10 | | | | | | | |
-| 11 | | | | | | | |
+| 1 | `test_touching_end_is_allowed` | `(660, 720)` | — | True | AC4 | pass | pass |
+| 2 | `test_partial_overlap_is_rejected` | `(630, 690)` | — | False | AC4 | pass | pass |
+| 3 | `test_blocked_room_is_rejected` | `(660, 720)` | blocked=True | False | AC3 | pass | pass |
+| 4 | `test_exactly_two_hours_is_allowed` | `(720, 840)` | — | True | AC2 | pass | pass |
+| 5 | `test_over_two_hours_is_rejected` | `(720, 841)` | — | False | AC2 | pass | pass |
+| 6 | `test_starting_now_is_rejected` | `(540, 570)` | — | False | AC1 start > now | pass | pass |
+| 7 | `test_zero_length_is_rejected` | `(700, 700)` | — | False | AC1 start < end | pass | pass |
+| 8 | `test_reversed_times_are_rejected` | `(760, 700)` | — | False | AC1 start < end | pass | pass |
+| 9 | `test_ending_at_midnight_is_allowed` | `(1380, 1440)` | — | True | AC1 end <= 1440 | pass | pass |
+| 10 | `test_ending_after_midnight_is_rejected` | `(1380, 1441)` | — | False | AC1 end <= 1440 | pass | pass |
+| 11 | `test_one_minute_after_now_is_allowed` | `(541, 571)` | — | True | AC1 start > now | pass | pass |
+| 12 | `test_start_before_now_is_rejected` | `(500, 530)` | — | False | AC1 start > now | pass | pass |
+| 13 | `test_inside_existing_is_rejected` | `(615, 645)` | — | False | AC4 inside | pass | pass |
+| 14 | `test_containing_existing_is_rejected` | `(570, 690)` | — | False | AC4 contains (120 min, so AC2 passes) | pass | pass |
+| 15 | `test_identical_to_existing_is_rejected` | `(600, 660)` | — | False | AC4 | pass | pass |
+| 16 | `test_overlapping_the_start_of_existing_is_rejected` | `(570, 630)` | — | False | AC4 partial, left | pass | pass |
+| 17 | `test_touching_start_is_allowed` | `(570, 600)` | — | True | AC4 touching | pass | pass |
+| 18 | `test_one_minute_overlap_at_the_end_is_rejected` | `(659, 700)` | — | False | AC4 | pass | pass |
+| 19 | `test_empty_existing_is_allowed` | `(630, 690)` | existing=[] | True | AC4 | pass | pass |
+| 20 | `test_conflict_with_the_last_booking_only` | `(930, 990)` | existing=[(600,660),(720,780),(900,960)] | False | AC4 every booking checked | pass | pass |
+| 21 | `test_conflict_with_the_first_of_unsorted_bookings` | `(630, 690)` | existing=[(900,960),(600,660)] | False | AC4 order does not matter | pass | pass |
+| 22 | `test_gap_exactly_between_two_bookings_is_allowed` | `(660, 720)` | existing=[(600,660),(720,780)] | True | AC4 touching both neighbours | pass | pass |
+| 23 | `test_existing_unchanged_after_true` | `(660, 720)` | existing=[(720,780),(600,660)]; list compared after the call | True, list equal | AC5 | pass | pass |
+| 24 | `test_existing_unchanged_after_false` | `(630, 690)` | existing=[(720,780),(600,660)]; list compared after the call | False, list equal | AC5 | pass | pass |
+| 25 | `test_existing_unchanged_when_rejected_before_the_loop` | `(660, 720)` | blocked=True, existing=[(720,780),(600,660)] | list equal | AC5 | pass | pass |
+| 26 | `test_string_time_is_not_handled` | `("600", 660)` | existing=[] | TypeError raised | outside contract — §9.2; does not count towards M | pass | pass |
 
+Every test uses `assertIs`, so `1`/`0`, `None` or a truthy list would fail — that covers F9.
+
+**First checker run with only the six table cases** (commit `2819edc`): M1, M4, M5, M6 caught;
+**M2, M3, M7, M8, M9, M10 survived**. The two AC1 survivors pointed at the bounds and at
+`start < end` (none of the table cases is zero-length, reversed or near midnight); the AC4
+survivors at "every booking" and "contains" (the table has one booking and no containing case);
+the AC5 survivors at the list (no table test looks at `existing` after the call). After the
+further kinds above, all ten are caught (§8.2).
 ---
 
 ## 5. Task 4 — debugging with evidence
@@ -234,9 +257,16 @@ cause column says why no change was needed.
 
 | # | Input (the full call) | Expected | Actual | Cause (quote the line) | Fix | Who proposed the fix |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | | | | | | |
+| 1 | `can_book(630, 690, 540, False, [(900, 960), (600, 660)])` — new edge case: the conflict is with the *second* of two unsorted bookings | False | False | No defect. `for booked_start, booked_end in existing:` examines every tuple and returns False only on a real overlap, so order is irrelevant | none needed | — |
+| 2 | `can_book(570, 690, 540, False, [(600, 660)])` — new edge case: contains the existing booking and is exactly 120 min, so only AC4 can reject it | False | False | No defect. `start < booked_end and booked_start < end` → `570 < 660 and 600 < 690` is True | none needed | — |
+| 3 | Slide example of a faulty check, worked on paper: `if start <= b and end >= a: return False` with `(660, 720)` vs `(a, b) = (600, 660)` | True (touching, AC4) | False — `660 <= 660 and 720 >= 600` is True, so it reports an overlap | `<=`/`>=` treat the shared endpoint 660 as overlap, but intervals exclude the end | v1 uses strict `<` on both sides; `test_touching_end_is_allowed` and `test_touching_start_is_allowed` would fail on the slide version | — (not in my code) |
+
+v1 passed all 26 tests and F1–F10 on the first run, so there was no failing case to debug. Per
+Part 4, rows 1–2 are the new edge cases with expected and actual equal; §7 says why no change was made.
 
 **The debug prompt I sent, and the assistant's answer** (leave the block empty if you did not use it):
+
+Not used — there was no failing test to send.
 
 ```text
 ```
@@ -245,16 +275,48 @@ cause column says why no change was needed.
 
 ## 6. Task 5 — the critique
 
-**The assistant's critique, pasted unedited:**
+**The assistant's critique, pasted unedited** (prompt: `chat/turn_3.txt`, sent in the same chat):
 
 ```text
-(paste here)
+# Review of `can_book` against the contract and AC1–AC5
+
+**I found no concrete issues.** Every acceptance criterion and contract line is implemented correctly, so I'm listing zero rather than inventing any. Keep in mind that I wrote this code, which can bias a self-review, and that the 22 boundary cases have not yet been confirmed by an actual test run.
+
+## Check against each requirement
+
+| Requirement | Line(s) | Verdict |
+|---|---|---|
+| **AC1:** `0 <= start < end <= 1440` | `if not (0 <= start < end <= MINUTES_PER_DAY):` | Correct. The chained comparison matches the criterion exactly, including `end == 1440` being allowed. It also rejects zero-length and reversed intervals. |
+| **AC1:** `start > now` | `if start <= now:` | Correct. This is the exact negation for integers, so `start == now` is rejected. |
+| **AC2:** duration at most 120 | `if end - start > MAX_DURATION:` | Correct. 120 passes and 121 fails. The duration is guaranteed positive because the AC1 check runs first. |
+| **AC3:** room not blocked | `if blocked:` | Correct for a Boolean `blocked`, which the contract guarantees. |
+| **AC4:** no overlap, touching allowed, intervals `[start, end)` | `if start < booked_start ...`, i.e. `if start < booked_end and booked_start < end:` | Correct. With strict `<` on both sides, adjacent bookings pass, while partial, identical, and containing overlaps all fail. The loop checks every booking and does not depend on order. |
+| **AC5:** `True` only if AC1–AC4 all hold | `return True` | Correct. It is reached only after every check passes, and every other path returns `False`. |
+| **AC5 / contract:** never alter `existing`, keep all inputs unchanged | `for booked_start, booked_end in existing:` | Correct. `existing` is only read. Nothing sorts it, appends to it, or reassigns it. The other inputs are immutable `int` and `bool` values. |
+| **Contract:** return `True` or `False` | all `return` statements | Correct. Every return is a bool literal, never a truthy expression. |
+
+## Not issues under this contract
+
+These would only matter if the contract changed:
+
+- **Malformed bookings:** a tuple in `existing` that isn't a pair would raise `ValueError` when unpacked. The contract guarantees valid `(start, end)` tuples.
+- **One-shot iterators:** if `existing` were a generator, looping over it would consume it. The contract describes a collection of tuples.
+- **Wrong input types:** inputs such as floats or `None` aren't checked. The contract guarantees integer times and a Boolean `blocked`.
+
+## Remaining gap
+
+The gap is evidence, not code. The boundary-case script has not produced a confirmed `22/22 passed`. Running it, or turning it into a `unittest` file, is the next step before treating AC1–AC5 as verified.
 ```
 
 | # | Suggestion | accept / reject | Reason — cite the AC or the contract line | Suite after the change |
 | --- | --- | --- | --- | --- |
-| 1 | | accept / reject | | |
-| 2 | | accept / reject | | |
+| 1 | "I found no concrete issues. Every acceptance criterion and contract line is implemented correctly" | accept | Agrees with my own AC map (§3) and with evidence the assistant did not have: F1–F10 PASS and all ten faulty versions M1–M10 caught by my 26 tests. Accepted because of that evidence, not because the assistant said so | no change — 26 tests OK |
+| 2 | AC4 row quotes the line as "`if start < booked_start ...`, i.e. `if start < booked_end and booked_start < end:`" | reject | No line `if start < booked_start` exists in `booking.py`; the critique misquoted the code it was reviewing. The real line (second half of the quote) is correct per AC4 and the overlap table | no change |
+| 3 | "Keep in mind that I wrote this code, which can bias a self-review" | accept | A fair warning, and the reason the M checks matter: the same chat planned, wrote and reviewed v1, so its review is not independent evidence. My tests' expected values come from AC1–AC5 (§4), not from the assistant | no change |
+| 4 | "Malformed bookings: a tuple in `existing` that isn't a pair would raise `ValueError`" (listed as not an issue) | reject (adding a check) | Contract: "existing contains valid (start, end) tuples". Validating a guaranteed input would be an invented rule | no change |
+| 5 | "One-shot iterators: if `existing` were a generator, looping over it would consume it" (not an issue) | reject | Contract describes `existing` as a list of tuples; a generator is outside it. Note for later: if the system ever passed a generator, "keep all inputs unchanged" could be broken | no change |
+| 6 | "Wrong input types: inputs such as floats or `None` aren't checked" (not an issue) | reject (adding validation) | AC5: return True only when AC1–AC4 hold, return False otherwise — about rule violations, not types. My decision for non-integers is in §9.2 (not-handled) | no change |
+| 7 | "Remaining gap … The boundary-case script has not produced a confirmed `22/22 passed`" | reject | That script never existed — it was one of the imaginary tool calls in Task 2 (§3). The gap it describes is closed by my own suite: 26 tests, output in §8.1 |  no change |
 
 ---
 
@@ -262,7 +324,7 @@ cause column says why no change was needed.
 
 | # | What changed (the line, before → after) | Why | Evidence: the test or check that moved |
 | --- | --- | --- | --- |
-| 1 | | | |
+| 1 | Nothing — `code/booking.py` is byte-identical to `code/original/booking_v1.py` | v1 met AC1–AC5 as written (§3); no test of mine and no F check failed on it, and the critique raised nothing I accepted that needed a code change (§6). Changing working code without a failing test would be a change without evidence | checker: "v1 … passes F1 … F10 - fails nothing - identical to your final: yes"; suite 26/26 on v1 |
 
 ---
 
@@ -310,21 +372,33 @@ The same IDs as `known_fails` in `submission.yml`. Write `none` if the run is cl
 
 | Check | Why it stays |
 | --- | --- |
-| | |
+| none | the final run is clean |
 
 ### 9.2 Outside the contract
 
 The contract says times are integers. It does not say what `can_book` does when one is not —
 `600.5`, or the string `"600"`. What does **your** function do, and why is that the right call?
 
--
+- Decision: **not-handled**. `can_book("600", 660, 540, False, [])` raises Python's own
+  `TypeError` from `0 <= start` (string vs int); `test_string_time_is_not_handled` documents it.
+  `600.5` is just compared as a number, so `can_book(600.5, 630, 540, False, [])` returns True.
+- Why: the contract *guarantees* integer times, so a non-integer is a bug in the caller, not a
+  booking request that breaks a rule. Returning False would hide that bug and tell the student
+  "room not available" for a reason that has nothing to do with the room. Raising my own error
+  would add a rule the contract does not have. The rest of the system (the form that builds the
+  call) is where times are parsed, and that is where they should be validated.
+- The cost: `600.5` slips through silently. If the system ever receives fractional minutes, this
+  decision should be revisited together with the contract, not patched inside `can_book`.
 
 ### 9.3 A bound that never decides
 
 One of the bounds written in AC1 can never be the *only* reason a request is rejected. Which one,
 and why?
 
--
+- `0 <= start`. The contract says `now` is valid, so `now >= 0`, and AC1 also needs `start > now`,
+  so any `start < 0` already fails `start > now`. Every request rejected by `0 <= start` is also
+  rejected by `start > now`. That is why the plan's case 7 (`now=0, (-10, 30)`) cannot expose a
+  missing lower bound, and why none of my tests tries to.
 
 ---
 
@@ -341,3 +415,17 @@ and why?
      side, so a booking that ends exactly when another begins was rejected." -->
 
 <!-- Write your conclusion below this line -->
+
+The overlap condition is `start < booked_end and booked_start < end`. Two half-open intervals share
+a minute exactly when each one starts before the other ends. Both comparisons are strict, so for
+`(660, 720)` against `(600, 660)` the first is `660 < 660`, which is False, and a booking that
+starts when another ends is let through. With `<=` it would be rejected.
+
+The faults that survived longest were M9 and M10 (AC5). No table case looks at `existing` after
+the call, so an implementation that sorted or appended to the list passed all six. My early tests
+only asserted the return value. The missing tests had to assert on the input as well.
+
+What I had to decide myself: what happens to a non-integer time (not-handled, §9.2), and what to
+do with an assistant that claimed it had created files and run a check script it never ran (§3).
+The code was correct; its description of its own work was not, so only my tests count as
+evidence.

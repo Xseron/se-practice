@@ -8,3 +8,4 @@ JSON reply, saved by a script before anything was read or edited.
 - `turn_1` — Task 1, the plan prompt
 - `turn_2` — Task 2, the implement prompt; `resp_2_raw_before_token_limit.md` is the text the model
   produced before it hit the output limit (imaginary tool calls, see lab-report §3)
+- `turn_3` — Task 5, the critique prompt with the final code pasted below it

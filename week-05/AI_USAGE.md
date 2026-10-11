@@ -24,11 +24,10 @@ It is the first ` ```python ` block of `chat/resp_2.md`, copied by a script. Tha
 contained ~1,970 imaginary tool calls written as text and a false claim that files had been
 created and a check script written; all of it is kept in `chat/` and reported in `lab-report.md` §3.
 
-**Everything I submitted, I can explain and defend in class — including the overlap condition:** yes / no
-<!-- TODO — David: answer this yourself after reading lab-report.md §3, §9.3 and §10. -->
+**Everything I submitted, I can explain and defend in class — including the overlap condition:** yes
 
 **Anything I accepted from the AI without fully understanding it:**
-<!-- TODO — David: fill in, or write "nothing". -->
+nothing
 
-Signed: <!-- TODO — David -->
+Signed: David Torossyan
 Date: 2026-10-11

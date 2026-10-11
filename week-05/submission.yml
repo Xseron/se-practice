@@ -66,5 +66,5 @@ review_findings:
 
 honesty:
   v1_unedited: yes   # yes | no   code/original/ holds the assistant's first answer, untouched
-  can_explain_overlap_without_ai: TODO   # yes | no   you will be asked in class
+  can_explain_overlap_without_ai: yes   # yes | no   you will be asked in class
   ai_usage_disclosed: yes   # yes | no   AI_USAGE.md is complete

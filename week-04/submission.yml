@@ -14,7 +14,7 @@ week: "04"
 
 student:
   name: David Torossyan
-  student_id: TODO # as in KBTU records, e.g. 24B031016
+  student_id: 24B032064 # as in KBTU records, e.g. 24B031016
   github: Xseron # your GitHub username, the one that owns the repo
 
 assistant:

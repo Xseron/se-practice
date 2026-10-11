@@ -38,7 +38,7 @@ claude -p --model claude-opus-5-5 --safe-mode --tools ""   --system-prompt "You 
 
 **The assistant's plan, pasted unedited** (also in `chat/resp_1.md`; the prompt is `chat/turn_1.txt`):
 
-~~~~text
+```text
 # Plan for `can_book`
 
 ## Checks in order
@@ -99,7 +99,7 @@ For AC5, every case should also confirm these two things:
 - `existing` is unchanged. Compare it to a deep copy taken before the call, and check that it is still the same object with the same length.
 
 Ready for your next request.
-~~~~
+```
 
 **What the plan invented or changed.** One row for every rule in the plan that is not in the
 contract or in AC1–AC5, or that says something different from them. If you found none, write one

@@ -1,0 +1,21 @@
+Scenario: Smart Campus study room booking.
+User story: As a student, I want to check a room's availability so that I can choose a valid booking time.
+Feature: implement can_book(...) for one selected room. Return a decision. The complete system handles saving and confirmation.
+
+Function contract
+can_book(start, end, now, blocked, existing)
+- Times are integer minutes after midnight on one date. Example: 600 means 10:00.
+- now is valid (0-1439). blocked is a Boolean.
+- existing contains valid (start, end) tuples for this room's active bookings only.
+- Return True or False. Keep all inputs unchanged.
+
+Acceptance criteria
+AC1: 0 <= start < end <= 1440, and start > now.
+AC2: Duration is at most 120 minutes.
+AC3: The room is not blocked.
+AC4: No overlap with an existing booking. Touching endpoints are allowed.
+AC5: Return True only when AC1-AC4 hold. Return False otherwise and never alter existing.
+
+Intervals include the start and exclude the end.
+
+This is the scenario, the function contract and the acceptance criteria. Use only these. Wait for my first request.

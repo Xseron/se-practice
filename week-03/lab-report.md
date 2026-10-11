@@ -512,25 +512,92 @@ Paste the **real terminal output** of both runs. A table with nothing behind it 
 
 ```
 $ python tests/check_requirements.py
-(paste)
+PASS   US-1  user-stories.md         no placeholders left
+PASS   US-2  user-stories.md         7 stories, IDs US-01�US-07
+PASS   US-3  user-stories.md         every story has the required sentence shape
+PASS   US-4  user-stories.md         every story has a priority
+PASS   US-5  user-stories.md         every story declares an assumption
+PASS   US-6  user-stories.md         only Student and Administrator appear as roles
+PASS   US-7  user-stories.md         nothing from the out-of-scope list appears
+PASS   AC-1  acceptance-criteria.md  no placeholders left
+PASS   AC-2  acceptance-criteria.md  three sections, all naming real stories: US-02, US-03, US-05
+PASS   AC-3  acceptance-criteria.md  every section has 3 to 5 uniquely numbered criteria
+PASS   AC-4  acceptance-criteria.md  all 12 criteria are complete Given/When/Then
+PASS   AC-5  acceptance-criteria.md  every section covers an invalid or boundary case
+PASS   AC-6  acceptance-criteria.md  9 assumptions listed before the criteria
+PASS   AC-7  acceptance-criteria.md  both open questions are settled in the assumptions
+PASS   PU-1  use-cases.puml          valid PlantUML block, no placeholders
+PASS   PU-2  use-cases.puml          exactly two actors: Student, Administrator
+PASS   PU-3  use-cases.puml          all six use cases present
+PASS   PU-4  use-cases.puml          system boundary present
+PASS   PU-5  use-cases.puml          no screens, databases or internal components
+PASS   PU-6  use-cases.puml          no unjustified actor associations found
+PASS   TR-1  traceability.md         all six use cases have a row
+PASS   TR-2  traceability.md         every ID in the table resolves
+PASS   TR-3  traceability.md         every story appears in the table
+------------------------------------------------------------------------
+23 PASS � 0 FAIL � 0 ERROR   (23 checks)
+Shape is clean. This says nothing about whether the requirements are good.
 ```
 
 ```
 $ python tests/validate_submission.py
-(paste)
+submission.yml � submission.yml
+------------------------------------------------------------------------
+PASS   schema                                    1
+PASS   week                                      03
+PASS   student.name                              David Torossyan
+FAIL   student.student_id                        still a placeholder: 'TODO'
+PASS   student.github                            Xseron
+PASS   assistant.tool                            Claude Code (headless claude -p, v2.1.296)
+PASS   assistant.model                           claude-opus-5-5 (Claude Opus 5.5)
+PASS   counts.user_stories                       7
+PASS   counts.acceptance_criteria_sets           3
+PASS   checker                                   23 PASS � 0 FAIL � 0 ERROR
+NOTE   checker                                   you are claiming a clean run � it will be re-run at your commit, so make sure it is true
+PASS   checker.commit                            b79183b
+PASS   assumptions.overlap_touching_bookings     allowed
+PASS   assumptions.exactly_two_hours             allowed
+PASS   traceability.use_cases_not_covered        UC-01, UC-05
+PASS   traceability.stories_not_traced           []
+PASS   review_findings                           5 findings
+PASS   review_findings[1]                        AC-03.4 (generated): 'cannot cancel a booking that has start�
+PASS   review_findings[2]                        AC-05.4 (generated): 'only an Administrator can block' rests�
+PASS   review_findings[3]                        AC-04: the generated R3 table had no 'inside' case (14:15-14�
+PASS   review_findings[4]                        US-01, US-02: the generated assumptions silently decided bot�
+PASS   review_findings[5]                        UC-01..UC-06: use-case names carried '(UC-0n)' in the label �
+FAIL   honesty.can_explain_everything_submitted  answer yes or no
+PASS   honesty.ai_usage_disclosed                yes
+------------------------------------------------------------------------
+21 PASS � 2 FAIL � 0 ERROR � 1 note
+Fix the FAIL and ERROR lines above, then run this again before you push.
 ```
 
 | | PASS | FAIL | ERROR |
 | --- | --- | --- | --- |
-| `check_requirements.py` | | | |
+| `check_requirements.py` | 23 | 0 | 0 |
 
-Commit these numbers were produced at (`git rev-parse --short HEAD`):
+Commit these numbers were produced at (`git rev-parse --short HEAD`): `b79183b`
 
 **Every FAIL, one line each: what it is and what you decided to do about it.** A FAIL you report and
 explain costs you nothing.
 
+- `check_requirements.py`: no FAIL at `b79183b`. The first full run (before `24bba03`) had
+  **US-7 FAIL: "out-of-scope vocabulary: attendance, reminder"**. Both words were in assumptions
+  that *exclude* those things (US-04 "no other messages, such as reminders", US-07 "attendance
+  is out of scope"). Nothing was widened, but naming an excluded feature is not needed to exclude
+  it, so I rephrased both assumptions without the words. The meaning is unchanged. Then
+  **AC-3 FAIL: "duplicate criterion IDs: AC-05"**, because AC-10 referred to AC-05 by ID. I
+  rewrote the reference in words.
+- `validate_submission.py`: the FAIL lines above are `student.student_id` and
+  `honesty.can_explain_everything_submitted`. They are fields only I can fill (my KBTU ID and my
+  own declaration), so they were left for me to fill and re-validate.
+
 **Did you run the checks by hand instead of with Python?** Say so here — it costs nothing, but it
 has to be said.
+
+No. Both were run with Python 3.12.6. The outputs above were captured by a script and pasted
+unedited.
 
 ---
 

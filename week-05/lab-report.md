@@ -241,7 +241,7 @@ Base input for every row unless the row says otherwise: `now=540, blocked=False,
 
 Every test uses `assertIs`, so `1`/`0`, `None` or a truthy list would fail — that covers F9.
 
-**First checker run with only the six table cases** (commit `2819edc`): M1, M4, M5, M6 caught;
+**First checker run with only the six table cases** (commit `c748155`): M1, M4, M5, M6 caught;
 **M2, M3, M7, M8, M9, M10 survived**. The two AC1 survivors pointed at the bounds and at
 `start < end` (none of the table cases is zero-length, reversed or near midnight); the AC4
 survivors at "every booking" and "contains" (the table has one booking and no containing case);

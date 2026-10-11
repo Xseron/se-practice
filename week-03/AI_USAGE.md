@@ -6,22 +6,28 @@ everything you submit, including everything an AI tool produced.
 
 | Tool | Exact model + version | Used for | Which files it touched |
 | --- | --- | --- | --- |
-| TODO | TODO | Prompt 1 — user stories | `requirements/user-stories.md` |
-| | | Prompt 2 — acceptance criteria | `requirements/acceptance-criteria.md` |
-| | | Prompt 3 — use-case diagram | `requirements/use-cases.puml` |
+| Claude Code v2.1.296, headless `claude -p`, tools disabled, fresh session | Claude Opus 5.5 (`claude-opus-5-5`) | Prompt 1 — user stories | `requirements/user-stories.md`, `chat/stories_*` |
+| same, new fresh session | Claude Opus 5.5 (`claude-opus-5-5`) | Prompt 2 — acceptance criteria | `requirements/acceptance-criteria.md`, `chat/ac_*` |
+| same, new fresh session | Claude Opus 5.5 (`claude-opus-5-5`) | Prompt 3 — use-case diagram | `requirements/use-cases.puml`, `chat/uc_*` |
 
-**One tool and one model for all three prompts:** yes / no
-<!-- If "no", say which prompt used what. -->
+**One tool and one model for all three prompts:** yes
 
 **Did you use AI for anything beyond the three verbatim prompts** — rewriting your review, writing
 the traceability table, drafting the conclusion? Name it. This is allowed and disclosed, not hidden.
 
-<!-- answer here -->
+Yes. A separate agentic Claude Code session in VS Code (same model, `claude-opus-5-5`) ran the
+whole lab for me. It created the branch, sent the three prompts through `claude -p` and saved
+the replies by script, and chose which three stories got criteria (US-02, US-03, US-05). It also
+wrote the review: the revised stories, the revised criteria, the revised diagram, the traceability
+table, the review tables and answers in `lab-report.md` §3, §5, §7, §8, the conclusion (§10), this
+file and `submission.yml`. It ran both checkers and made the commits. This was done on 2026-10-11,
+after the deadline, so the submission is late.
 
 **Everything I submitted, I can explain and defend in class:** yes / no
+<!-- TODO — David: answer this yourself after reading lab-report.md. -->
 
 **Anything I accepted from the AI without fully understanding it:**
-<!-- Name the file and the part. An honest answer costs nothing. -->
+<!-- TODO — David: name the file and the part, or write "nothing". -->
 
-Signed:
-Date:
+Signed: <!-- TODO — David -->
+Date: 2026-10-11

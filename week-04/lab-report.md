@@ -77,7 +77,7 @@ proves it is a problem.
 
 | # | Element | Problem | Rule or story | Fix |
 | --- | --- | --- | --- | --- |
-| 1 | Every use-case name, e.g. `"Book study room\n<size:10>US-01 \| R1, R2, R3, R4</size>"` | Story IDs and rule numbers are written into the use-case *name*, so the name is no longer a goal phrase, and "Book study room" does not match the scenario's "book a room" | Scenario sentence "Students view room availability, book a room, and cancel their own bookings" | Names are plain goals ("Book room", "View room availability" …); story IDs moved to `'` comments and notes |
+| 1 | Every use-case name, e.g. "Book study room" with a second, small-font line "US-01, R1, R2, R3, R4" inside the name | Story IDs and rule numbers are written into the use-case *name*, so the name is no longer a goal phrase, and "Book study room" does not match the scenario's "book a room" | Scenario sentence "Students view room availability, book a room, and cancel their own bookings" | Names are plain goals ("Book room", "View room availability" …); story IDs moved to `'` comments and notes |
 | 2 | `UC_Book` — R1–R4 only in a `legend`, no element on the use case | The rules Book room depends on are not attached to it, and R4 (confirmation) has no visible place at all | R4, US-01 | Note on Book room: R1, R3, R2 checked before creation, R4 as an *outcome* of Book room, not a separate goal |
 | 3 | `UC_Block` — the AI's A7 "open question … not shown in the diagram" | README §3: an undecided question must be declared "the moment a diagram depends on it"; Block room depends on it | R3, US-04 | Declared A1 (existing bookings are kept) and put it in a note on Block room |
 | 4 | Book room — touching bookings undecided | Same: R2's meaning for 10:00–12:00 / 12:00–13:00 is not stated anywhere | R2 | Declared A2 (touching allowed, half-open intervals) in the Book room note |
@@ -196,7 +196,7 @@ behaviour diagram). "Before" is what the AI produced; "After" is what you submit
 
 | # | Diagram | Before (AI's original) | After (your revision) | Reason |
 | --- | --- | --- | --- | --- |
-| 1 | use case | Names with IDs inside: `"Book study room\n<size:10>US-01 \| R1, R2, R3, R4</size>"` etc.; rules only in a legend | Plain goal names ("Book room", "View room availability", …); notes on Book room (R1–R4, A2), Block room (A1), Cancel own booking | §3 rows 1–4 |
+| 1 | use case | Names with IDs inside: "Book study room" with a second, small-font line "US-01, R1, R2, R3, R4" inside the name etc.; rules only in a legend | Plain goal names ("Book room", "View room availability", …); notes on Book room (R1–R4, A2), Block room (A1), Cancel own booking | §3 rows 1–4 |
 | 2 | use case | No note on Unblock room or View room availability | Notes: Unblock → R3 again subject to R1, R2; View → "free" = A3 | critique M2, M3 (§6 rows 2–3) |
 | 3 | class | `class Administrator` + two dependencies; `Room.book()`; `Student.name`; R2 in a note on Room; `blocked` unreadable | No Administrator class; no `Room.book()`; no `name`; R2 note on Booking; `+ isBlocked()`; A3 in Room's note | §4.4 rows 1–5; critique M1, U1 |
 | 4 | sequence | `break [R1 violated]`, `alt [not blocked and overlapping is empty]` / `else [blocked (R3) or …]` — renders inverted | Bare guards, nested `alt` R1 → R3 → R2, one rejection per rule | §5 rows 1–3, README §4 |

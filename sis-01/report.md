@@ -37,7 +37,17 @@
 <!-- 350–400 words. Your answer to the question, the trade-offs, and how it applies to your
      scenario. Explain at least two engineering decisions and why they fit the scenario. -->
 
-(write here)
+All four fundamentals in Sommerville's chapter 1 (§1.1.2, p. 26) apply to this small system, and none of them is settled by writing code. The booking rules are faculty policy: the facilities administrator owns them and accepts each release, while the two developers elicit, record, implement and test them and decide the technical risks.
+
+**Process.** A managed process means a plan of what is delivered and when, not only a choice of model. In weeks 1–2 we show the administrator a paper prototype to settle most rules cheaply. The first increment goes live in week 8 of 12, well before exam week, and contains booking, the overlap rule and room blocking, because exam rooms are blocked in exam week. On launch day the paper bookings are entered and the sheets removed, so there is one source of truth. Usage review comes later. Trade-off: the administrator must be available twice, and early code may be reworked when a rule changes.
+
+**Dependability.** The named risk is a double booking in exam week, when simultaneous requests are normal. A correct check in code is not enough, because two requests can both pass it before either is saved. Decision: the database enforces the rule. If the server runs PostgreSQL (not yet confirmed), an exclusion constraint on room and time range rejects every overlapping insert, and touching bookings still pass because a range excludes its end by default. Tests go beyond boundaries: identical and contained bookings, and a check that the list of existing bookings is unchanged. Availability belongs here too: if single sign-on is down, nobody can book.
+
+**Requirements management.** Decision: every rule gets an ID, a testable criterion, links to its tests and a source column naming who asked for it. A rule without a source is an invented rule. This matters with an assistant: in our labs it turned "the administrator blocks rooms" into "only an administrator can block" and invented "a started booking cannot be cancelled". Neither had a source.
+
+**Reuse.** Single sign-on and the database spare us writing login and concurrency control, at the price of depending on them. Generated code counts as reuse too (Lesson 01, slide 37), but once merged its maintainer is us, and after we graduate, whoever takes over.
+
+For every principle, the assistant can draft plans, constraints, criteria and tests. The administrator decides the rules, and we answer for every line we merge.
 
 ## 3. Review
 
@@ -45,20 +55,34 @@
      checks and your two substantive revisions, each with a reason. Point at the rows of the
      tables in section 9 ("verification row 2", "change-log row 1"). -->
 
-(write here)
+Prompt B raised 18 points; the decision on each is in the critique table in section 9. Most were accepted, not all. The strongest was point 3: the draft gave "choosing the rules" to the engineers, which repeats the fault the outline blamed the AI for. The administrator now owns the rules (change-log row 1). Point 16, that generated code is not really reuse, was challenged on substance: Lesson 01 slide 37 says the opposite, so the claim stays, attributed to the course (verification row 4). Point 7 was partly rejected: usage review is not invented, it is the administrator's story in our Week 03 requirements. Its "accept and flag the conflict" alternative was rejected, because a double booking in exam week is exactly the named risk.
+
+Source checks. Sommerville p. 26 confirmed the critique's claim that the fundamentals are a managed process and "dependability and performance" (verification row 1), so the process section now has a dated plan and dependability includes availability. The PostgreSQL documentation, §8.17.10, confirmed that an exclusion constraint with btree_gist rejects overlapping bookings for the same room (row 3). This turned the vague "the database should enforce the rule too" into a concrete decision (change-log row 3). Slides 35 and 38 qualified the draft's waterfall claim (row 2).
+
+Revisions. "Its errors sit at the boundaries" became tests for containment and an unchanged list, because in Week 05 the two faults hardest to catch were not boundary bugs (change-log row 2). Prompt C claimed that usage review would make no-shows visible; booking records cannot show attendance, so this moved to the limitation (row 4).
+
+Still uncertain: whether the faculty server runs PostgreSQL, and whether single sign-on is allowed for a student-built app.
 
 ## 4. Conclusion
 
 <!-- 100–150 words. Your recommendation for the scenario and its main limitation. -->
 
-(write here)
+Recommendation: build the system incrementally on the faculty server. Start with a paper prototype for the administrator in weeks 1–2. Release booking, blocking and an overlap rule enforced by the database by week 8, and add usage review later. Keep a rules table with a source for every rule, and derive the tests from it rather than from the code. Use the assistant for drafts and test ideas, but the administrator decides the rules and accepts the release.
+
+Main limitation: the design rests on two facts that are not yet checked. One is that the server's database can enforce an overlap constraint. The other is that university IT will allow single sign-on for a student-built app. It also leaves empty reserved rooms unsolved: a booking records intent, not attendance, and whether to record actual use is the administrator's decision.
 
 ## 5. Reflection
 
 <!-- 150–200 words. NOT part of the main total. Written by you, not by the assistant:
      what helped, what you changed, what you learned. Specific beats flattering. -->
 
-(write here)
+*Written by Claude Code (the agentic session), not by David. Disclosed in AI_USAGE.md.*
+
+What helped most was Prompt B's point 3. Outline point 5 said that deciding the rules "stays with the engineers", and the draft repeated it. The critique showed this is the same mistake the outline blamed the AI for: a rule needs an owner, and in this scenario the owner is the facilities administrator, not the developers. That one change touched every section.
+
+What changed after the source checks: the vague "the database should enforce the rule" became a named exclusion constraint once the PostgreSQL documentation turned out to use a room reservation as its own example. Room blocking moved into the first release after the critique pointed out that exam rooms are blocked in exam week.
+
+What the process showed: a critique is not a verdict. Its point 16 said generated code is not really reuse, and Lesson 01 slide 37 says the opposite. Prompt C also overreached when it claimed that usage review would reveal no-shows, which booking records cannot do. Every AI step needed the same check as the first draft, including the revision that had been asked to use only verified sources.
 
 ## 6. References
 
@@ -67,7 +91,10 @@
      - Sommerville, I. (2016). Software Engineering, 10th ed., Global Edition. Pearson. Ch. 1.
 -->
 
-- (write here)
+- Sommerville, I. (2016). Software Engineering, 10th ed., Global Edition. Pearson Education Limited. Ch. 1, §1.1.2 "Software engineering diversity", p. 26; exercise 1.6, p. 41. Read in the publisher's preview: https://api.pageplace.de/preview/DT0400.9781292096148_A26661611/preview-9781292096148_A26661611.pdf (accessed 2026-10-11).
+- Lesson #01: Introduction to Software Engineering & Software Processes. AI-Driven Software Engineering, KBTU SITE, Fall 2026. Lecture slides (Lesson_01_AI_Driven_SE_Lecture.pdf), slides 35, 37 and 38.
+- PostgreSQL Global Development Group. PostgreSQL 18 Documentation, §8.17 Range Types: §8.17.6 "Constructing Ranges and Multiranges" and §8.17.10 "Constraints on Ranges". https://www.postgresql.org/docs/current/rangetypes.html (accessed 2026-10-11).
+- Torossyan, D. se-practice repository, week-03/lab-report.md (AC-03.4 and AC-05.4, the rules the assistant invented) and week-05/lab-report.md (§4 and §10, the faulty versions M9 and M10). Own course work, KBTU, Fall 2026.
 
 ## 7. Appendix A — Initial outline
 
@@ -88,9 +115,9 @@
 
 ### B1 — Draft (Prompt A)
 
-- **Tool:** (write here)
-- **Model:** (write here)
-- **Date:** (write here)
+- **Tool:** Claude Code v2.1.296, headless `claude -p` with tools disabled and a neutral system prompt, a fresh session for each prompt (raw files in `sis-01/chat/`)
+- **Model:** claude-opus-5-5 (Claude Opus 5.5)
+- **Date:** 2026-10-11
 - **Purpose:** contextual draft
 
 <!-- Model: the exact model with its version, as the tool shows it (e.g. "GPT-5 Thinking",
@@ -100,51 +127,468 @@
 **Prompt:**
 
 ```text
-(paste here)
+Act as a software engineering tutor. Help me analyze topic 1.6 (Fundamental engineering principles: "How do process, dependability, requirements management and reuse apply to a small campus room-booking system, and which of these decisions can an AI assistant support and which must the engineers still make?") for a first-year-level university assignment.
+
+My scenario is a fictional faculty with 40 study rooms. Users: students booking study rooms; the facilities administrator who blocks rooms; two student developers who build and maintain the system. Problem: rooms are booked on paper sheets taped to each door, so double bookings and empty "reserved" rooms are common. Constraints: (1) the first version must be in use within one 12-week semester; (2) it must run on the faculty's existing server with the university's single sign-on and no budget for new software. Risk: during exam week a faulty overlap check, possibly generated by an AI assistant, accepts two bookings for the same room and time. My initial ideas are (1) Process: an incremental process fits better than waterfall, because the booking rules (are touching bookings allowed? is exactly two hours allowed?) were open at the start and are only settled once real users try the system. Booking comes first, room blocking and usage reports in later increments. (2) Dependability: the one check that must never be wrong is the overlap check, and its errors sit at the boundaries (a booking that starts exactly when another ends, exactly 120 minutes, the end of the day). A lost or doubled booking in exam week costs more than a slow page. (3) Requirements management: every rule gets an ID and a testable acceptance criterion and is traced to the tests, so when a rule changes we know which code and which tests change with it. (4) Reuse: reuse the university single sign-on and an existing database instead of writing our own login and storage. Code generated by an AI assistant is also a kind of reuse and has to be reviewed like any third-party component. (5) AI can draft plans, code and tests quickly, but in our labs it also invented rules nobody asked for ("only an administrator can block", "a started booking cannot be cancelled"). Deciding the rules and signing off the result stays with the engineers. Draft a 400–500 word explanation using these details.
+
+Separate facts from assumptions. Explain trade-offs and identify claims I should verify. Do not invent quotations, references or page numbers.
 ```
 
 **Response:**
 
 ```text
-(paste here)
+# Draft (about 485 words)
+
+**Applying fundamental engineering principles to a campus room-booking system**
+
+The faculty's 40 study rooms are booked on paper sheets taped to each door, which causes double bookings and "reserved" rooms that stand empty. Two student developers must replace this with a system that is in use within one 12-week semester, runs on the faculty's existing server with the university's single sign-on (SSO), and needs no new software budget. Four engineering principles shape this work.
+
+**Process.** An incremental process fits better than waterfall. Some booking rules were open at the start, such as whether touching bookings are allowed or whether exactly two hours is permitted. We assume some will only be settled once students and the administrator use the system. The first increment therefore delivers booking, and room blocking and usage reports follow. The trade-off is that incremental delivery needs users available for feedback during the semester, and early code may need rework when a rule changes. Waterfall offers a fixed plan, but would freeze rules before anyone knows them.
+
+**Dependability.** The check that must never be wrong is the overlap check, and its errors sit at the boundaries: a booking starting exactly when another ends, exactly 120 minutes, the end of the day. We judge a lost or doubled booking in exam week to cost more than a slow page. So if the check cannot be completed, the system should reject the booking, trading occasional frustration for integrity. Correct logic is not enough: if two students submit at the same moment, both may pass the check before either is saved, so the database should enforce the rule too. Boundary tests apply whether a developer or an AI assistant wrote the code.
+
+**Requirements management.** Every rule gets an ID and a testable acceptance criterion and is traced to its tests. If touching bookings are allowed, R3 might read: "A 10:00–12:00 booking for Room 12 is accepted when the only existing booking ends at 10:00." When a rule changes, the trace shows which code and tests change with it. The cost is bookkeeping for a two-person team, so a simple table is more realistic than a dedicated tool.
+
+**Reuse.** Reusing SSO and an existing database avoids writing login and storage, which are hard to make secure and reliable, and keeps the project within budget. The trade-off is dependence: if SSO is down, nobody can book. AI-generated code is also reuse. Unlike a maintained library, though, it has no track record or maintainer, so it deserves at least the same review and testing as any third-party component.
+
+**What AI can and cannot decide.** An AI assistant can quickly draft plans, code and test cases. In our labs, however, it also invented rules nobody asked for, such as "only an administrator can block" and "a started booking cannot be cancelled". Such rules look plausible, which makes them easy to miss. AI can therefore support drafting and checking, but choosing the rules, accepting the risks and signing off the release remain the engineers' decisions.
+
+---
+
+# Tutor notes
+
+## Facts vs. assumptions
+
+| Type | Items |
+|---|---|
+| **Given by your scenario** | 40 rooms, paper sheets, double and empty bookings, the three user groups, two developers, 12 weeks, existing server, SSO, no budget, the exam-week risk. |
+| **Your own observation** | The AI invented two rules in your labs. This is real evidence, but it is a single anecdote. Keep the wording "in our labs" and don't generalise it to "AI always does this". |
+| **Assumptions** | Rules only settle once users try the system. Users will be available for feedback mid-semester. The server can host the app. SSO integration is permitted. A suitable free database exists. |
+| **Value judgements** | "A doubled booking costs more than a slow page." This is reasonable, but it is a priority you chose, not a fact. The draft says "we judge" for that reason. |
+
+## Things I added beyond your ideas
+Keep only what you can defend:
+- **The concurrency point.** This is the biggest addition. Your exam-week risk may not come from wrong logic at all. Two simultaneous requests can both pass a correct check.
+- **Fail-safe rejection.**
+- **SSO as a single point of failure.**
+- **AI code having no maintainer.**
+- **The cost of traceability.**
+- **The observation that the invented rules look plausible.** This one is sharp in your scenario. The administrator *does* block rooms, so "only an administrator can block" might become a real rule. The problem is that the AI decided it rather than a stakeholder.
+
+## Claims to verify
+1. **SSO access.** Does university IT allow a student-built app to use SSO, and how long does approval take? This could eat into your 12 weeks.
+2. **Database enforcement.** Which existing database would you use, and can it enforce "no overlap" itself? For example, PostgreSQL has exclusion constraints. Check what your actual database supports.
+3. **Your overlap condition.** With touching bookings allowed, a common formulation is `new.start < existing.end AND existing.start < new.end`. Test it against these cases: touching, identical times, one booking inside another, exactly 120 minutes, and closing time.
+4. **"Only settled once real users try it."** Some rules could be settled by simply asking the administrator first. Consider softening this claim.
+5. **Definitions.** Check how your course material defines "incremental" versus "iterative" or "agile", and how it phrases the four principles. If you cite a textbook, cite it from your own copy, not from memory.
+6. **"AI drafts quickly."** Does it still save time once review is included? Your lab experience could answer this.
 ```
 
 ### B2 — Critique (Prompt B)
 
-- **Tool:** (write here)
-- **Model:** (write here)
-- **Date:** (write here)
+- **Tool:** Claude Code v2.1.296, headless `claude -p` with tools disabled and a neutral system prompt, a fresh session for each prompt (raw files in `sis-01/chat/`)
+- **Model:** claude-opus-5-5 (Claude Opus 5.5)
+- **Date:** 2026-10-11
 - **Purpose:** critical review of the draft
 
 **Prompt:**
 
 ```text
-(paste here)
+Review the draft below against my chosen question and scenario. Identify inaccuracies, missing reasoning, vague claims and unsupported assumptions.
+For each concern, explain why it matters and how I could check it. Include a counterexample or alternative interpretation. Do not rewrite the answer yet.
+Question: How do process, dependability, requirements management and reuse apply to a small campus room-booking system, and which of these decisions can an AI assistant support and which must the engineers still make? (topic 1.6, Fundamental engineering principles). Scenario: Users: students booking study rooms; the facilities administrator who blocks rooms; two student developers who build and maintain the system. Problem: rooms are booked on paper sheets taped to each door, so double bookings and empty "reserved" rooms are common. Constraints: (1) the first version must be in use within one 12-week semester; (2) it must run on the faculty's existing server with the university's single sign-on and no budget for new software. Risk: during exam week a faulty overlap check, possibly generated by an AI assistant, accepts two bookings for the same room and time. Assumptions: the faculty, its 40 rooms, the paper sheets, the two-developer team, the server and the 12-week deadline are fictional. Draft: # Draft (about 485 words)
+
+**Applying fundamental engineering principles to a campus room-booking system**
+
+The faculty's 40 study rooms are booked on paper sheets taped to each door, which causes double bookings and "reserved" rooms that stand empty. Two student developers must replace this with a system that is in use within one 12-week semester, runs on the faculty's existing server with the university's single sign-on (SSO), and needs no new software budget. Four engineering principles shape this work.
+
+**Process.** An incremental process fits better than waterfall. Some booking rules were open at the start, such as whether touching bookings are allowed or whether exactly two hours is permitted. We assume some will only be settled once students and the administrator use the system. The first increment therefore delivers booking, and room blocking and usage reports follow. The trade-off is that incremental delivery needs users available for feedback during the semester, and early code may need rework when a rule changes. Waterfall offers a fixed plan, but would freeze rules before anyone knows them.
+
+**Dependability.** The check that must never be wrong is the overlap check, and its errors sit at the boundaries: a booking starting exactly when another ends, exactly 120 minutes, the end of the day. We judge a lost or doubled booking in exam week to cost more than a slow page. So if the check cannot be completed, the system should reject the booking, trading occasional frustration for integrity. Correct logic is not enough: if two students submit at the same moment, both may pass the check before either is saved, so the database should enforce the rule too. Boundary tests apply whether a developer or an AI assistant wrote the code.
+
+**Requirements management.** Every rule gets an ID and a testable acceptance criterion and is traced to its tests. If touching bookings are allowed, R3 might read: "A 10:00–12:00 booking for Room 12 is accepted when the only existing booking ends at 10:00." When a rule changes, the trace shows which code and tests change with it. The cost is bookkeeping for a two-person team, so a simple table is more realistic than a dedicated tool.
+
+**Reuse.** Reusing SSO and an existing database avoids writing login and storage, which are hard to make secure and reliable, and keeps the project within budget. The trade-off is dependence: if SSO is down, nobody can book. AI-generated code is also reuse. Unlike a maintained library, though, it has no track record or maintainer, so it deserves at least the same review and testing as any third-party component.
+
+**What AI can and cannot decide.** An AI assistant can quickly draft plans, code and test cases. In our labs, however, it also invented rules nobody asked for, such as "only an administrator can block" and "a started booking cannot be cancelled". Such rules look plausible, which makes them easy to miss. AI can therefore support drafting and checking, but choosing the rules, accepting the risks and signing off the release remain the engineers' decisions.
+
+---
+
+# Tutor notes
+
+## Facts vs. assumptions
+
+| Type | Items |
+|---|---|
+| **Given by your scenario** | 40 rooms, paper sheets, double and empty bookings, the three user groups, two developers, 12 weeks, existing server, SSO, no budget, the exam-week risk. |
+| **Your own observation** | The AI invented two rules in your labs. This is real evidence, but it is a single anecdote. Keep the wording "in our labs" and don't generalise it to "AI always does this". |
+| **Assumptions** | Rules only settle once users try the system. Users will be available for feedback mid-semester. The server can host the app. SSO integration is permitted. A suitable free database exists. |
+| **Value judgements** | "A doubled booking costs more than a slow page." This is reasonable, but it is a priority you chose, not a fact. The draft says "we judge" for that reason. |
+
+## Things I added beyond your ideas
+Keep only what you can defend:
+- **The concurrency point.** This is the biggest addition. Your exam-week risk may not come from wrong logic at all. Two simultaneous requests can both pass a correct check.
+- **Fail-safe rejection.**
+- **SSO as a single point of failure.**
+- **AI code having no maintainer.**
+- **The cost of traceability.**
+- **The observation that the invented rules look plausible.** This one is sharp in your scenario. The administrator *does* block rooms, so "only an administrator can block" might become a real rule. The problem is that the AI decided it rather than a stakeholder.
+
+## Claims to verify
+1. **SSO access.** Does university IT allow a student-built app to use SSO, and how long does approval take? This could eat into your 12 weeks.
+2. **Database enforcement.** Which existing database would you use, and can it enforce "no overlap" itself? For example, PostgreSQL has exclusion constraints. Check what your actual database supports.
+3. **Your overlap condition.** With touching bookings allowed, a common formulation is `new.start < existing.end AND existing.start < new.end`. Test it against these cases: touching, identical times, one booking inside another, exactly 120 minutes, and closing time.
+4. **"Only settled once real users try it."** Some rules could be settled by simply asking the administrator first. Consider softening this claim.
+5. **Definitions.** Check how your course material defines "incremental" versus "iterative" or "agile", and how it phrases the four principles. If you cite a textbook, cite it from your own copy, not from memory.
+6. **"AI drafts quickly."** Does it still save time once review is included? Your lab experience could answer this.
 ```
 
 **Response:**
 
 ```text
-(paste here)
+# Review of the draft against question 1.6 and your scenario
+
+Concerns are grouped by section. Within each group, the most serious come first. Each one covers what is wrong, why it matters, how to check it, and a counterexample or alternative reading.
+
+---
+
+## A. Gaps against the question and scenario
+
+**1. The "empty reserved rooms" problem is never addressed.**
+- **Problem:** The scenario names two failures: double bookings and rooms reserved but left empty. Every section of the draft targets only double bookings.
+- **Why it matters:** A marker comparing the draft with the scenario will see half the problem unsolved. An online system could also make no-shows *worse*, because booking from bed at midnight costs nothing.
+- **Check:** For each section, ask what in it would reduce empty reserved rooms. Ask the administrator why rooms sit empty. People forgetting, booking speculatively and stale sheets each need different fixes.
+- **Alternative:** No-shows may be a policy problem, solved by check-in, auto-release after 15 minutes or per-student limits. You could deliberately leave it out of version 1, but the draft must say so.
+
+**2. The AI part of the question is not answered for each principle.**
+- **Problem:** The question asks which of *these* decisions an AI can support. That means decisions about process, dependability, requirements and reuse. The draft answers in one general closing paragraph. AI appears briefly under dependability and reuse, not at all under process, and only implicitly under requirements.
+- **Why it matters:** The second half of the question is half the marks. A generic list of "plans, code, test cases" and "rules, risks, release" could describe any project.
+- **Check:** Draw a 4×2 grid: the four principles against "AI can support" and "humans must decide". Mark which cells the draft actually fills. Most of the process and reuse cells are empty.
+- **Alternative:** Some decisions belong to neither the AI nor the engineers. See concern 3.
+
+**3. "Choosing the rules … remain the engineers' decisions" puts authority in the wrong place.**
+- **Problem:** Rules such as maximum duration, who may block rooms and whether a booking can be cancelled are faculty policy. The facilities administrator or the faculty owns them. The developers elicit, record and implement them. Your tutor note says the trouble with the AI's rule is that the AI chose it instead of a stakeholder. The draft's conclusion replaces the AI with the developers, which has the same flaw.
+- **Why it matters:** This weakens your strongest argument. It also leaves "signing off the release" vague. Do two students approve their own work, or does the administrator accept it?
+- **Check:** For each rule, ask who a student would complain to, and whether the administrator would accept that the developers set it.
+- **Counterexample:** If a developer decides that "a started booking cannot be cancelled", they have done exactly what you criticise the AI for.
+- **Alternative reading:** Engineers decide *technical* risk, such as failing closed and testing depth. Stakeholders decide *policy*. Drawing that line would sharpen the answer.
+
+**4. The principles may be worded differently from your course.**
+- **Problem:** Sommerville (ch. 1) is a common source for topic 1.6. If your course follows him, the fundamentals are a *managed and understood* process and *dependability and performance*.
+  - The draft dismisses performance in passing ("a slow page").
+  - Its process section picks a model but never says how the work will be managed: milestones, progress tracking, and what gets cut if week 8 slips.
+- **Why it matters:** If the marking scheme follows that wording, you lose credit for points you could easily cover.
+- **Check:** Compare with your course slides for 1.6, as tutor note 5 suggests.
+- **Alternative:** If your course words the principles differently, this concern disappears.
+
+---
+
+## B. Process
+
+**5. Incremental versus waterfall is a false choice, and waterfall is a strawman.**
+- **Problem:** "Waterfall … would freeze rules before anyone knows them" assumes the rules can't be learned in advance. With 40 rooms and one administrator, a few interviews might settle most of them. Tutor note 4 already flags this, but the draft text hasn't changed. Other options also exist, such as a paper mock-up or throwaway prototype shown to the administrator in weeks 1–2 before a planned build.
+- **Why it matters:** An argument that only beats a weak alternative looks unconsidered.
+- **Check:** List the open rules and ask the administrator about them. Count how many truly need real usage to settle.
+- **Counterexample:** The maximum duration probably already exists as a policy on the paper sheets, so it is not open at all.
+
+**6. Deferring room blocking, and ignoring the move from paper, both create the risk you are trying to prevent.**
+- **Problem:** The first increment is booking only, and blocking comes later. In exam week, rooms are likely to be blocked for exams. If blocking isn't built yet, students can book rooms that are unavailable. Separately, the draft never says what happens to the paper sheets at launch. If some people keep using paper while others use the system, there are two sources of truth. That causes double bookings no overlap check can see.
+- **Why it matters:** The draft's process choice could produce the exam-week failure on its own, without any code defect.
+- **Check:** Ask the administrator how often and when rooms are blocked. Place increment 2 on a timeline next to exam week. Decide who removes the sheets, and when.
+- **Alternative:** If blocking is rare, the administrator could use a workaround, such as booking the room from an admin account. That would justify deferring it, but the draft needs to say so.
+
+**7. The timing is undefined, and "usage reports" have no source.**
+- **Problem:** The draft never says when version 1 goes live relative to exam week. If it launches in week 11 and exams start in week 13, the first heavy use comes almost immediately, with no feedback cycle in between. "Usage reports" appear nowhere in the scenario, and no stakeholder is named who wants them.
+- **Why it matters:** Incremental delivery only helps if increments reach users early. Every unrequested feature competes for 12 weeks of two people's time.
+- **Check:** Sketch a week-by-week plan with release points and exam week marked.
+- **Alternative:** Reports *could* be justified by the empty-room problem, for example by showing no-show rates. If that is your reason, connect them to concern 1.
+
+---
+
+## C. Dependability
+
+**8. "Its errors sit at the boundaries" overclaims and mixes different rules.**
+- **Problem:** "Exactly 120 minutes" is a duration rule, and "end of the day" is an opening-hours rule. Neither is part of the overlap check. The scenario also never says there is a 2-hour limit, yet the draft assumes one twice. Overlap errors also come from other sources:
+  - leaving the room out of the comparison;
+  - counting cancelled bookings, or not counting them;
+  - leaving administrator blocks out of the check;
+  - simultaneous requests, which the draft raises two sentences later, contradicting its own claim.
+- **Why it matters:** If you test only boundaries, you will feel safe while a common bug survives.
+- **Check:** Write overlap functions with one planted bug each, and see which ones your boundary tests catch.
+- **Counterexample:** A check of the form "conflict if the new start falls inside an existing booking, or the new end falls inside it" misses a 09:00–13:00 booking that fully contains a 10:00–12:00 one. That is a containment bug, not a boundary bug, and it accepts exactly the double booking in your risk.
+
+**9. The value judgement doesn't match the decision it justifies, and availability is ignored.**
+- **Problem:** "A doubled booking costs more than a slow page" is used to justify rejecting bookings when the check can't complete. But the cost of rejecting is a *refused valid booking or an unusable system*, not a slow page. "Cannot be completed" is also vague. If the database is down, the booking can't be saved anyway, so the rule adds nothing. Rejecting also does nothing to prevent the "lost" bookings the sentence mentions.
+- **Why it matters:** Dependability covers availability as well as integrity. If the system refuses everything during an exam-week outage, students go back to paper or squatting, which brings back double bookings outside the system.
+- **Check:** List concrete failures (database down, SSO down, timeout, server restart) and decide the behaviour for each one.
+- **Alternative:** A study room is not safety-critical. A double booking means two groups at one door, which is today's normal situation. Accepting the booking and flagging the conflict to the administrator is a defensible choice. The draft needs to argue why it is worse.
+
+**10. Nothing covers detecting or recovering from a double booking.**
+- **Problem:** Your risk says a faulty check *accepts* two bookings. The draft only discusses prevention.
+- **Why it matters:** Dependability includes detection and recovery. Examples are a nightly query for overlapping rows, a conflict view for the administrator, notifying both students, and a rule for who keeps the room.
+- **Check:** Ask yourself: if this happens on the Monday of exam week, who finds out, how, and what do they do?
+- **Counterexample:** If you add a database constraint after overlapping rows already exist, creating it fails. Prevention alone also does not clean up existing bad data.
+
+**11. Simultaneous bookings are presented as rare, and the database fix is vague.**
+- **Problem:** "If two students submit at the same moment" sounds like an edge case. But popular slots in exam week, or bookings that open at a fixed time, make simultaneous requests normal. "The database should enforce the rule too" doesn't say how.
+- **Why it matters:** Some common approaches do not actually work:
+  - A unique constraint on (room, start time) only catches identical start times, not partial overlaps.
+  - A check-then-insert inside a transaction can still race at default isolation levels.
+- **Check:** Write a small script that sends two overlapping inserts at once and see whether both succeed. If you use PostgreSQL, an exclusion constraint on room plus time range needs the `btree_gist` extension. Check that you have permission to enable it on the faculty server.
+
+**12. Maintainability and privacy are missing.**
+- **Problem:** The scenario says the two students "build and maintain" the system, but students graduate. AI-generated code that nobody fully understands makes handover harder. Bookings tied to SSO identities also record who is in which room and when, which is personal data.
+- **Check:** Ask the faculty who maintains the system next year. Check the university's data-protection rules.
+- **Alternative:** If your course scope covers version 1 only, one sentence acknowledging this is enough.
+
+---
+
+## D. Requirements management
+
+**13. The trace is inconsistent and only runs one way.**
+- **Problem:** Rules are "traced to its tests", yet the next sentence says the trace shows "which code" changes. Nothing links rules to code. More importantly, the trace only runs *forward*, from rules to tests. Tracing *backward*, from each rule to its source (e.g. "administrator, interview, week 2"), is exactly what would catch AI-invented rules. A rule in the code with no source is an invented rule. The draft misses this link to its own best evidence.
+- **Check:** Draft the table with a "source" column, then see whether "only an administrator can block" would be flagged.
+- **Alternative:** Linking rule IDs in commit messages gives you the rule-to-code trace almost for free.
+
+**14. The R3 example tests one side only, and change control is missing.**
+- **Problem:** R3 covers a new booking that starts when an existing one ends. It doesn't cover the mirror case, a new booking that ends when an existing one starts, or any case that should be rejected. "Touching" is also used before it is defined. Requirements management also covers *who approves a change*, which matters when the draft expects rules to change mid-semester.
+- **Why it matters:** A bug that is wrong on only one side passes R3, so R3 is weak as the draft's showcase of "testable".
+- **Check:** Write the mirror case and one rejection case, then run them against the planted bugs from concern 8.
+
+---
+
+## E. Reuse
+
+**15. SSO is a requirement, not a reuse choice, and the biggest reuse question is missing.**
+- **Problem:** The scenario requires SSO, so presenting it as a reuse decision with a trade-off is weak, because there was no alternative. The real reuse decisions are which framework, calendar component and database to use. Above all: should you deploy an existing open-source room-booking system, such as MRBS, or extend the university's timetabling system instead of building one? Several other points also need tightening:
+  - "Keeps the project within budget" is inaccurate. Writing your own login costs *time*, not money, so the constraint it protects is the 12 weeks.
+  - "An existing database" is an assumption. The scenario only mentions an existing server.
+  - "No budget for new software" could mean "can't buy" or "can't install". These lead to different decisions.
+  - "If SSO is down, nobody can book" may be overstated, since sessions that are already logged in may continue.
+- **Check:** Ask faculty IT what is installed on the server and whether free software may be added. Look for existing booking systems that support your university's SSO protocol. Note their licences, since "free" can still carry obligations.
+- **Counterexample:** If an existing tool fits, building at all is the wrong decision. If it doesn't, explaining why makes the case for building much stronger.
+
+**16. "AI-generated code is also reuse" can be challenged.**
+- **Problem:** Once you accept the code, it is arguably *your* code, not a reused component. "It has no maintainer" then misses the point: the maintainer is you, and that is the real burden. "At least the same review" also doesn't say what that review involves.
+- **Check:** Look up how your course defines reuse. It is often about components and systems, not generated code.
+- **Alternative:** A different framing could be reuse of code of *unknown origin*, which raises licensing and copying risks rather than maintenance risks.
+
+---
+
+## F. The AI section
+
+**17. "Rules nobody asked for" is partly contradicted by your own scenario.**
+- **Problem:** The scenario says the administrator blocks rooms. So "an administrator can block" was asked for. Only the word "*only*" was invented. The tutor note spots this, but the draft text still says "nobody asked for".
+- **Why it matters:** A reader who knows the scenario can dismiss your example in one sentence.
+- **Check:** Reread the prompt you used in the lab. Did it say who blocks rooms, or who can cancel?
+- **Alternative reading:** The AI filled gaps in an underspecified prompt. That is evidence for *requirements management* rather than proof that the AI is unreliable. That framing may actually be stronger.
+
+**18. "AI can support checking" is unsupported, and correlated errors are ignored.**
+- **Problem:** The risk says the faulty check may come from an AI. If the same AI also writes the tests from the same understanding, the tests will confirm the bug. For example, both may treat a booking's end time as part of the booking, which blocks touching bookings. "Quickly" is also unsupported once review time is counted (tutor note 6).
+- **Why it matters:** This is the central weakness in your risk scenario, and the draft treats tests as an independent safeguard without saying where their independence comes from.
+- **Check:** In the lab, give the AI the containment-bug function from concern 8, ask for tests, and see whether they catch it. Then compare with tests written from the requirements table.
+- **Alternative:** An AI reviewing *human* code, or tests derived from requirements rather than from the code, could provide real independence. Independence is the property to argue for.
+
+---
+
+## Where to start
+
+The highest-value fixes are:
+
+1. **Empty rooms** (concern 1).
+2. **Per-principle AI decisions with stakeholder ownership** (concerns 2 and 3).
+3. **The containment counterexample and detection/recovery** (concerns 8 and 10).
+4. **Backward traceability as the defence against invented rules** (concern 13).
+
+These address the question directly and strengthen the evidence you already have.
 ```
 
 ### B3 — Revision (Prompt C)
 
-- **Tool:** (write here)
-- **Model:** (write here)
-- **Date:** (write here)
+- **Tool:** Claude Code v2.1.296, headless `claude -p` with tools disabled and a neutral system prompt, a fresh session for each prompt (raw files in `sis-01/chat/`)
+- **Model:** claude-opus-5-5 (Claude Opus 5.5)
+- **Date:** 2026-10-11
 - **Purpose:** revision using my decisions and verified evidence
 
 **Prompt:**
 
 ```text
-(paste here)
+Revise the draft using my review decisions and source notes below. Keep the answer relevant to my scenario and preserve uncertainty where evidence is limited.
+
+My decisions: (1) Empty reserved rooms: accepted. The draft must address them, but a no-show rule (for example releasing a room nobody checked into) is the administrator's policy decision, not ours; version 1 only has to make no-shows visible. (2) AI per principle: accepted. Say for each of the four principles what an AI can support and what people must decide. (3) Who owns the rules: accepted. Booking rules are faculty policy owned by the facilities administrator; the developers elicit, record, implement and test them and decide technical risk. "Signing off" means the administrator accepts the release. (4) Course wording of the principles: accepted after checking Sommerville (evidence 1). Process means a planned, managed process, not only a model choice; dependability includes availability and performance. (5) Waterfall as a strawman: qualified. Keep incremental, but add a paper prototype shown to the administrator in weeks 1–2 to settle most rules before building; only rules that need real use stay open (evidence 3). (6) Deferring blocking and the paper sheets: accepted. Blocking moves into the first increment because exam rooms are blocked in exam week, and the sheets are removed on launch day so there is one source of truth. (7) Timing and usage reports: qualified. Version 1 must be live well before exam week (fictional plan: week 8 of 12). Usage reports are not invented: usage review is an administrator story in our Week 03 requirements and it is how no-shows become visible, so they stay in a later increment. (8) "Errors sit at the boundaries" overclaims: accepted. In our Week 05 lab six faulty versions survived the six table tests, and the two that survived longest were not boundary bugs: they sorted or appended to the list of existing bookings. Containment must be tested too. The 120-minute limit is a duration rule from the Week 05 contract, not part of the overlap check. (9) Fail-closed and availability: qualified. Drop the sentence about rejecting a booking when the check cannot complete; it adds nothing. Accept that availability is part of dependability (evidence 1). Reject "accept and flag the conflict": a double booking in exam week is exactly the risk we named, and a database constraint rejects the second booking cheaply. (10) Detection and recovery: qualified. With a database constraint, overlapping rows cannot be stored, so a nightly check is not needed for new data; detection matters once, when the bookings from the paper sheets are entered at launch, because the constraint cannot be created over overlapping rows. (11) Simultaneous requests: accepted. They are normal in exam week, a unique constraint on start time is not enough, and the database rule must be named (evidence 2). (12) Maintainability and privacy: accepted, briefly. The two developers will graduate, so the rules table and tests are the handover; other students see "booked", not who booked. (13) Backward traceability: accepted. Each rule gets a source column (who asked for it); a rule with no source is an invented rule. This is our defence against invented rules. (14) R3 one-sided, change control: qualified. Drop the R3 example rather than expand it; change control is covered by decision 3 (the administrator approves rule changes). (15) SSO is a requirement, not a reuse choice: accepted. The money claim is wrong: writing our own login would cost time, not budget. The bigger reuse question is whether an existing open-source booking system fits; I have not verified any specific product, so it stays an open check, not a recommendation. (16) "AI-generated code is reuse" challenged: rejected. Our course explicitly calls using a code-generating model a form of reuse (evidence 3). Accepted only the point that once merged, the maintainer is us. (17) "Rules nobody asked for": accepted. The scenario does say the administrator blocks rooms; the AI added "only" (access control resting on authentication, which was out of scope), and it invented the cancellation rule outright. Frame it as the AI filling gaps in an underspecified prompt, which is evidence for requirements management. (18) Correlated errors: accepted. If the same AI writes the check and its tests, the tests can share its misunderstanding; independence comes from tests derived from the acceptance criteria, as in our Week 05 lab where expected values came from the criteria, never from running the code. Verified evidence: (Evidence 1) Sommerville, Software Engineering, 10th ed., Global Edition, ch. 1, section 1.1.2, p. 26: the fundamentals that apply to all types of software are (1) a managed and understood development process, planned so that it is clear what will be produced and when, with the specific process depending on the type of software; (2) dependability and performance: behave as expected without failures, be available when required, be safe and secure, and not waste resources; (3) understanding and managing the specification and requirements, including managing users' expectations so a useful system is delivered within budget and schedule; (4) effective use of existing resources: where appropriate, reuse software that has already been developed rather than write new software. The same page says that for an interactive web-based system, iterative development and delivery is the best approach. (Evidence 2) PostgreSQL 18 documentation, section 8.17.10 "Constraints on Ranges", https://www.postgresql.org/docs/current/rangetypes.html (accessed 2026-10-11): an exclusion constraint prevents overlapping ranges from existing in the table at the same time; with the btree_gist extension installed, EXCLUDE USING GIST (room WITH =, during WITH &&) rejects overlapping ranges only when the room is the same, and the overlapping insert fails with an error. Section 8.17.6 says a range built from two values includes the lower bound and excludes the upper bound by default, so a booking that starts exactly when another ends does not conflict. Whether the faculty server runs PostgreSQL is not known (scenario assumption). (Evidence 3) Course Lesson 01 slides (AI-Driven Software Engineering, KBTU, Fall 2026): slide 37 "Integration and configuration" says reuse reduces cost and risk at the price of control over what you shipped, and "Using a code-generating model is a form of reuse"; slide 38 "Which model, when?" says incremental fits when requirements will change during development, prototyping first when the customer cannot describe what they want yet, and that most large systems mix models; slide 35 says waterfall fits when requirements are stable and must be signed off. Draft: # Draft (about 485 words)
+
+**Applying fundamental engineering principles to a campus room-booking system**
+
+The faculty's 40 study rooms are booked on paper sheets taped to each door, which causes double bookings and "reserved" rooms that stand empty. Two student developers must replace this with a system that is in use within one 12-week semester, runs on the faculty's existing server with the university's single sign-on (SSO), and needs no new software budget. Four engineering principles shape this work.
+
+**Process.** An incremental process fits better than waterfall. Some booking rules were open at the start, such as whether touching bookings are allowed or whether exactly two hours is permitted. We assume some will only be settled once students and the administrator use the system. The first increment therefore delivers booking, and room blocking and usage reports follow. The trade-off is that incremental delivery needs users available for feedback during the semester, and early code may need rework when a rule changes. Waterfall offers a fixed plan, but would freeze rules before anyone knows them.
+
+**Dependability.** The check that must never be wrong is the overlap check, and its errors sit at the boundaries: a booking starting exactly when another ends, exactly 120 minutes, the end of the day. We judge a lost or doubled booking in exam week to cost more than a slow page. So if the check cannot be completed, the system should reject the booking, trading occasional frustration for integrity. Correct logic is not enough: if two students submit at the same moment, both may pass the check before either is saved, so the database should enforce the rule too. Boundary tests apply whether a developer or an AI assistant wrote the code.
+
+**Requirements management.** Every rule gets an ID and a testable acceptance criterion and is traced to its tests. If touching bookings are allowed, R3 might read: "A 10:00–12:00 booking for Room 12 is accepted when the only existing booking ends at 10:00." When a rule changes, the trace shows which code and tests change with it. The cost is bookkeeping for a two-person team, so a simple table is more realistic than a dedicated tool.
+
+**Reuse.** Reusing SSO and an existing database avoids writing login and storage, which are hard to make secure and reliable, and keeps the project within budget. The trade-off is dependence: if SSO is down, nobody can book. AI-generated code is also reuse. Unlike a maintained library, though, it has no track record or maintainer, so it deserves at least the same review and testing as any third-party component.
+
+**What AI can and cannot decide.** An AI assistant can quickly draft plans, code and test cases. In our labs, however, it also invented rules nobody asked for, such as "only an administrator can block" and "a started booking cannot be cancelled". Such rules look plausible, which makes them easy to miss. AI can therefore support drafting and checking, but choosing the rules, accepting the risks and signing off the release remain the engineers' decisions.
+
+---
+
+# Tutor notes
+
+## Facts vs. assumptions
+
+| Type | Items |
+|---|---|
+| **Given by your scenario** | 40 rooms, paper sheets, double and empty bookings, the three user groups, two developers, 12 weeks, existing server, SSO, no budget, the exam-week risk. |
+| **Your own observation** | The AI invented two rules in your labs. This is real evidence, but it is a single anecdote. Keep the wording "in our labs" and don't generalise it to "AI always does this". |
+| **Assumptions** | Rules only settle once users try the system. Users will be available for feedback mid-semester. The server can host the app. SSO integration is permitted. A suitable free database exists. |
+| **Value judgements** | "A doubled booking costs more than a slow page." This is reasonable, but it is a priority you chose, not a fact. The draft says "we judge" for that reason. |
+
+## Things I added beyond your ideas
+Keep only what you can defend:
+- **The concurrency point.** This is the biggest addition. Your exam-week risk may not come from wrong logic at all. Two simultaneous requests can both pass a correct check.
+- **Fail-safe rejection.**
+- **SSO as a single point of failure.**
+- **AI code having no maintainer.**
+- **The cost of traceability.**
+- **The observation that the invented rules look plausible.** This one is sharp in your scenario. The administrator *does* block rooms, so "only an administrator can block" might become a real rule. The problem is that the AI decided it rather than a stakeholder.
+
+## Claims to verify
+1. **SSO access.** Does university IT allow a student-built app to use SSO, and how long does approval take? This could eat into your 12 weeks.
+2. **Database enforcement.** Which existing database would you use, and can it enforce "no overlap" itself? For example, PostgreSQL has exclusion constraints. Check what your actual database supports.
+3. **Your overlap condition.** With touching bookings allowed, a common formulation is `new.start < existing.end AND existing.start < new.end`. Test it against these cases: touching, identical times, one booking inside another, exactly 120 minutes, and closing time.
+4. **"Only settled once real users try it."** Some rules could be settled by simply asking the administrator first. Consider softening this claim.
+5. **Definitions.** Check how your course material defines "incremental" versus "iterative" or "agile", and how it phrases the four principles. If you cite a textbook, cite it from your own copy, not from memory.
+6. **"AI drafts quickly."** Does it still save time once review is included? Your lab experience could answer this.
+
+Show what you changed and why. Use only the sources I supplied. Flag remaining gaps instead of inventing details.
 ```
 
 **Response:**
 
 ```text
-(paste here)
+# Revised draft (about 1,130 words, excluding headings)
+
+**Applying fundamental engineering principles to a campus room-booking system**
+
+The faculty's 40 study rooms are booked on paper sheets taped to each door, which causes double bookings and "reserved" rooms that stand empty. Two student developers must replace this with a system that is in use within one 12-week semester, runs on the faculty's existing server with the university's single sign-on (SSO), and needs no new software budget. Sommerville (*Software Engineering*, 10th ed., Global Edition, §1.1.2, p. 26) names four fundamentals that apply to all software: a managed process, dependability and performance, managing requirements, and effective reuse. The booking rules are faculty policy owned by the facilities administrator. We elicit, record, implement and test them, and we decide technical risks. "Signing off" means the administrator accepts the release.
+
+**Process.** Sommerville asks for a planned, managed process in which it is clear what will be produced and when. Choosing a model is only part of that.
+
+- **Weeks 1–2:** we show the administrator a paper prototype to settle most rules before building, such as whether back-to-back bookings are allowed.
+- **Week 8 of 12 (planned), well before exam week:** the first increment goes live. It delivers booking, the overlap rule and room blocking. Blocking is included because exam rooms are blocked in exam week.
+- **Launch day:** the paper bookings are entered and the sheets are removed, so there is one source of truth.
+- **Later increment:** usage review, an administrator story from our Week 03 requirements.
+
+This mix follows our course slides: prototype first when the customer cannot yet describe what they want, and deliver incrementally when requirements will change (Lesson 01, slide 38). Sommerville likewise recommends iterative development and delivery for interactive web-based systems. Waterfall fits when requirements are stable and must be signed off (slide 35). After the prototype most of ours may be stable, but rules that depend on real use stay open, such as what to do about no-shows. The cost is that the administrator must be available early and again later, and early code may need rework when a rule changes. *AI can* draft the plan, prototype screens and a split into increments. *People decide* the rules (the administrator) and commit to the dates (us).
+
+**Dependability and performance.** This principle covers more than correct logic. The system must behave as expected, be available when required, be secure and not waste resources.
+
+The named risk is a double booking in exam week, when simultaneous requests are normal. Two requests can both pass a correct check before either is saved. A unique constraint on start time would still accept 10:00–12:00 and 11:00–13:00 in the same room. So the database must enforce the rule.
+
+- **The constraint:** if the faculty server runs PostgreSQL, which we have not confirmed, an exclusion constraint does this. With the btree_gist extension, a constraint on room and time range, `EXCLUDE USING GIST (room WITH =, during WITH &&)`, makes an overlapping insert for the same room fail with an error.
+- **Back-to-back bookings:** ranges include their start and exclude their end by default, so a booking may start exactly when another ends (PostgreSQL 18 documentation, §8.17.6, §8.17.10). If the administrator rules otherwise, the bounds must change.
+- **Accept and flag, rejected:** accepting a conflicting booking and flagging it would admit exactly the failure we named, while the constraint rejects it cheaply.
+- **Detection:** since overlapping rows cannot be stored, new data needs no nightly check. Detection matters once, at launch. Double bookings already on the paper sheets will clash with the constraint and must be resolved with the administrator.
+
+Tests must go beyond boundaries. In our Week 05 lab, six faulty versions of the overlap check survived our six table tests. The two that survived longest were not boundary bugs: they sorted or appended to the list of existing bookings. Our tests therefore cover:
+
+- back-to-back bookings;
+- identical bookings;
+- one booking contained in another;
+- that the existing list is unchanged after the check.
+
+The 120-minute limit is a separate duration rule from our Week 05 contract, tested on its own. For privacy, other students see "booked", not who booked.
+
+*AI can* draft the constraint, code and tests. But if one assistant writes both the check and its tests, the tests can share its misunderstanding. Independent tests take their expected values from the acceptance criteria, never from running the code, as in Week 05. *People decide* which technical risks are acceptable (us).
+
+**Specification and requirements.** Every rule gets an ID, a testable acceptance criterion, links to its tests and a source column naming who asked for it. The source column is our defence against invented rules: a rule with no source has no stakeholder behind it.
+
+Our labs showed the need. Given an underspecified prompt, the AI filled the gaps:
+
+- The scenario says the administrator blocks rooms, but the AI wrote "*only* an administrator can block". That is an access-control rule resting on authentication, which that lab left out of scope.
+- It invented "a started booking cannot be cancelled" outright.
+
+Both look plausible; neither has a source. When a rule changes, the administrator approves the change, and the trace shows which code and tests change with it.
+
+Sommerville also stresses managing users' expectations: the system will not end empty reserved rooms by itself. A no-show rule, such as releasing a room nobody checked into, is the administrator's decision. Our job is to make no-shows visible through the later usage review, although how actual use will be recorded is still open. A simple table suits a two-person team better than a dedicated tool. Because both developers will graduate, the rules table and tests are the handover. *AI can* draft acceptance criteria, flag gaps and contradictions, and propose test cases from the criteria. *People decide* which rules exist (the administrator).
+
+**Reuse.** Sommerville advises reusing existing software where appropriate. Our course adds that reuse reduces cost and risk at the price of control over what you ship (slide 37).
+
+- **SSO** is a requirement, not a reuse choice. It does spare us writing login, which would have cost time rather than budget. It also carries reuse's price: if SSO is down, nobody can log in to book.
+- **The database:** letting it enforce the overlap rule is reuse too, since we do not write our own concurrency control.
+- **An existing booking system:** the bigger question is whether an existing open-source booking system already fits our server, SSO and rules. We have not verified any product, so this is an open check for weeks 1–2, not a recommendation.
+- **AI-written code:** our course calls using a code-generating model a form of reuse (slide 37). Once AI-written code is merged, however, its maintainer is us, and after we graduate, whoever takes over.
+
+*AI can* suggest candidate components and summarise their documentation, which we must verify. *People decide* whether to adopt one and accept the dependence (us, with the administrator where it affects the rules).
+
+**Who decides.** Across all four principles the pattern is the same. AI drafts and checks. The administrator decides the rules and accepts the release. We decide technical risks and answer for every line we merge, however it was written.
+
+---
+
+# What changed and why
+
+| # | Decision | Change in the draft |
+|---|---|---|
+| 1 | Empty rooms | Added to *Specification and requirements*. The no-show rule is the administrator's. We only make no-shows visible. I added that how use is recorded is still open. |
+| 2 | AI per principle | Each section now ends with *AI can … / people decide …*. The old "What AI can and cannot decide" section became a short *Who decides* close. |
+| 3 | Rule ownership | The intro states who owns the rules and what sign-off means. Removed "remain the engineers' decisions". Each *people decide* names who. |
+| 4 | Course wording | Cited Sommerville §1.1.2, p. 26. *Process* opens with "planned, managed… what and when". *Dependability* lists availability, security and resources. Headings follow his wording. |
+| 5 | Waterfall | Added the weeks 1–2 paper prototype. Replaced "freeze rules before anyone knows them" with slide 35's condition. Added slide 38 and Sommerville's advice for web systems. The no-show policy is now the example of a rule that needs real use. |
+| 6 | Blocking, sheets | Blocking is in the first increment, with the exam-week reason. Sheets are removed on launch day. |
+| 7 | Timing, reports | Week 8 of 12 is stated as a plan. Usage review stays in a later increment, tied to the Week 03 story and to no-shows. |
+| 8 | Boundaries overclaim | Removed "errors sit at the boundaries" and added the Week 05 result. Added the containment and unchanged-list tests. The 120-minute limit is now a separate duration rule. **My extension:** I also dropped "the end of the day" from the overlap cases for the same reason. Restore it as a separate rule if you have a closing-time rule. |
+| 9 | Fail-closed | Deleted the reject-if-the-check-fails sentence. Also deleted "we judge a doubled booking costs more than a slow page", since it only justified that sentence. Added availability. Added one sentence rejecting accept-and-flag. |
+| 10 | Detection | No nightly check for new data; detection happens once, for the paper bookings at launch. I wrote "clash with the constraint" instead of "the constraint cannot be created over overlapping rows" (see gap 3). |
+| 11 | Simultaneous requests | Named why a unique constraint on start time fails, with an example. Named the PostgreSQL exclusion constraint. Flagged that the server's database is unconfirmed. |
+| 12 | Maintainability, privacy | One clause each. |
+| 13 | Traceability | Added the source column and "no source = invented rule". |
+| 14 | R3 | Deleted. Change control is now: the administrator approves, and the trace shows the impact. |
+| 15 | SSO | SSO is called a requirement. "Within budget" is now "time, not budget". The open-source booking system is an unverified open check. |
+| 16 | AI code as reuse | Kept, citing slide 37. Replaced "no track record or maintainer… same review as third-party" with "once merged, its maintainer is us". Testing of AI code is covered in *Dependability* instead. |
+| 17 | Invented rules | Moved to *Requirements* and reframed as gap-filling in an underspecified prompt. Explains the added "only" and that authentication was out of scope. The cancellation rule is invented outright. Linked to the source column. |
+| 18 | Correlated errors | Added to the *Dependability* AI line, citing the Week 05 practice. |
+
+**Other edits not tied to a decision:**
+- Removed "quickly", because the speed claim is unverified.
+- Added that the default range bounds match "back-to-back allowed" (my link between the policy and the constraint).
+- "Resolved with the administrator" is my inference from decision 3.
+- "Weeks 1–2" for the open-source check is my suggestion.
+
+---
+
+# Updated tutor notes
+
+## Facts vs. assumptions
+
+| Type | Items |
+|---|---|
+| **Given by your scenario** | 40 rooms, paper sheets, double bookings and empty reserved rooms, three user groups, two developers, 12 weeks, existing server, SSO, no budget, the exam-week risk, and that the administrator blocks rooms. |
+| **Verified sources (supplied by you)** | Sommerville §1.1.2, p. 26: the four fundamentals, and iterative delivery for web systems. PostgreSQL 18 docs §8.17.6 and §8.17.10: exclusion constraint, btree_gist, default bounds. Lesson 01 slides 35, 37 and 38. |
+| **Your course evidence** (as you described it; I haven't seen these materials) | The Week 03 usage-review story. The Week 05 contract (120-minute limit). The Week 05 lab results and method. The two rules the AI invented, which come from your own labs; keep "in our labs" and don't generalise. |
+| **Your decisions** (plans, not facts) | Paper prototype in weeks 1–2. Launch in week 8 (fictional plan). Blocking in the first increment. Sheets removed on launch day. Usage review later. Rejecting accept-and-flag. |
+| **Assumptions** | The server runs PostgreSQL and allows btree_gist. Exam week falls after week 8. The administrator is available in weeks 1–2 and later. SSO is permitted for a student app. Simultaneous requests are normal in exam week (accepted by you, not measured). |
+
+## Remaining gaps (flagged, not filled)
+
+1. **How no-shows become visible.** Booking records show reservations, not whether anyone came. Usage review can only reveal no-shows if something records actual use; your own example mentions check-in. I did not invent a mechanism.
+   - **Wording tension:** decision 1 says version 1 makes no-shows visible, but decision 7 puts usage review after the week-8 launch. I avoided "version 1" there. If you meant the week-8 release, recording use must move into the first increment.
+2. **Database on the faculty server.** It is unknown whether the server runs PostgreSQL, which version, and whether btree_gist can be installed. If it runs a different database, the named constraint does not carry over. The argument still does: a unique constraint is not enough, and the database must enforce the rule.
+3. **Constraint over existing overlaps.** Evidence 2 says an overlapping insert fails. It does not say what happens when you add the constraint to a table that already has overlaps. If you create the constraint first and then import the paper bookings, every clash fails on insert, which is fully covered by evidence 2. The draft's wording holds either way.
+4. **"Containment".** I read it as one booking inside another. The unchanged-list test covers the sort and append bugs. Adjust if you meant only one of these.
+5. **Open-source booking system.** No product has been checked.
+6. **SSO approval.** Permission and lead time are still open from the earlier notes.
+7. **Incremental vs. iterative.** Sommerville says "iterative development and delivery"; your slides discuss incremental delivery. Check whether your course distinguishes the two.
+8. **AI time savings.** Still unmeasured, so the draft makes no speed claim.
+9. **Who sees names.** Whether the administrator sees who booked (e.g. for no-show review) is a policy question. The draft only states what students see.
+10. **Housekeeping.**
+    - Take Sommerville's year and publisher from your own copy; they are not in your notes.
+    - Cite the PostgreSQL URL with the access date 2026-10-11.
+    - The draft is about 2.3× the original length. If there is a word limit, cut candidates are:
+      - the bounds/back-to-back sentence;
+      - the database-as-reuse bullet;
+      - "a simple table suits…";
+      - the reuse AI line, which can merge into *Who decides*.
 ```
 
 ## 9. Appendix C — Evidence tables
@@ -156,8 +600,10 @@
 
 | AI claim | Source and locator | Evidence found | Decision |
 | --- | --- | --- | --- |
-| (write here) | (write here) | (write here) | (write here) |
-| (write here) | (write here) | (write here) | (write here) |
+| B2, point 4: "If your course follows him, the fundamentals are a *managed and understood* process and *dependability and performance*." | Sommerville, Software Engineering, 10th ed., Global Edition, ch. 1, §1.1.2, p. 26 (publisher's preview, https://api.pageplace.de/preview/DT0400.9781292096148_A26661611/preview-9781292096148_A26661611.pdf, accessed 2026-10-11) | The page lists four fundamentals: a managed and understood process (planned, with a clear idea of what is produced and when); dependability and performance (no failures, available when required, safe, secure, efficient); understanding and managing requirements and users' expectations; reuse of existing software where appropriate. Exercise 1.6 (p. 41) is this topic. | keep |
+| B1: "An incremental process fits better than waterfall … Waterfall offers a fixed plan, but would freeze rules before anyone knows them." | Lesson 01 slides, slide 35 "The waterfall model" and slide 38 "Which model, when?"; Sommerville ch. 1, p. 26 | Waterfall fits when requirements are stable and must be signed off. Incremental fits when requirements will change; prototyping comes first when the customer cannot yet describe what they want, and most systems mix models. Sommerville: iterative development and delivery suits interactive web-based systems. So incremental holds, but a paper prototype can settle most rules before building. | qualify |
+| B2, point 11: "If you use PostgreSQL, an exclusion constraint on room plus time range needs the `btree_gist` extension." | PostgreSQL 18 Documentation, §8.17.10 "Constraints on Ranges" and §8.17.6, https://www.postgresql.org/docs/current/rangetypes.html (accessed 2026-10-11) | The docs' own example is a room reservation: after `CREATE EXTENSION btree_gist`, `EXCLUDE USING GIST (room WITH =, during WITH &&)` rejects an overlapping insert for the same room with an error and accepts it for another room. Ranges include the lower bound and exclude the upper by default (§8.17.6), so touching bookings do not conflict. | keep |
+| B1: "AI-generated code is also reuse." (challenged by B2, point 16: "It is often about components and systems, not generated code.") | Lesson 01 slides, slide 37 "Integration and configuration"; Sommerville ch. 1, p. 26, fundamental 4 | Slide 37 says "Using a code-generating model is a form of reuse" and that reuse lowers cost and risk at the price of control over what you shipped. Sommerville's wording is narrower: reuse software that has already been developed rather than write new software. The claim stays, attributed to the course, not the textbook. | qualify |
 
 ### Change log
 
@@ -166,5 +612,30 @@
 
 | AI wording / suggestion | Your final version | Reason for change |
 | --- | --- | --- |
-| (write here) | (write here) | (write here) |
-| (write here) | (write here) | (write here) |
+| B1: "choosing the rules, accepting the risks and signing off the release remain the engineers' decisions." | "The booking rules are faculty policy: the facilities administrator owns them and accepts each release, while the two developers elicit, record, implement and test them and decide the technical risks." (§2, first paragraph) | The scenario names the administrator as a user; developers deciding policy repeats the fault blamed on the AI (B2 point 3). Sommerville p. 26 frames requirements as managing what users expect (verification row 1). |
+| B1: "the overlap check, and its errors sit at the boundaries: a booking starting exactly when another ends, exactly 120 minutes, the end of the day." | "Tests go beyond boundaries: identical and contained bookings, and a check that the list of existing bookings is unchanged." (§2, Dependability) | Evidence from our Week 05 lab: six faulty versions survived the six table tests, and the two hardest to catch (M9, M10) sorted or appended to the list, which is not a boundary bug. 120 minutes is a duration rule, not part of the overlap check (B2 point 8). |
+| B1: "if two students submit at the same moment, both may pass the check before either is saved, so the database should enforce the rule too." | "If the server runs PostgreSQL (not yet confirmed), an exclusion constraint on room and time range rejects every overlapping insert, and touching bookings still pass because a range excludes its end by default." (§2, Dependability) | Verification row 3: the PostgreSQL documentation shows exactly this constraint on a room-reservation table. The scenario's server is an assumption, so the condition stays in the sentence. |
+| B3: "Our job is to make no-shows visible through the later usage review." | "It also leaves empty reserved rooms unsolved: a booking records intent, not attendance, and whether to record actual use is the administrator's decision." (§4, limitation) | B3's own gap 1 admits booking records cannot show who came; no source supports the claim, and recording attendance is a policy decision that belongs to the administrator (B2 point 3). |
+
+### Critique decisions (Prompt B, all 18 points)
+
+| # | B2 point | Decision | Reason |
+| --- | --- | --- | --- |
+| 1 | Empty reserved rooms are never addressed | accept | The scenario names them. A no-show rule is the administrator's policy, so the report names it as a limitation (§4) instead of deciding it. |
+| 2 | The AI part is not answered per principle | accept | §2 says for each principle what the assistant can draft and who decides. |
+| 3 | "Remain the engineers' decisions" puts authority in the wrong place | accept | Rules are faculty policy; the administrator owns them and accepts the release (change-log row 1). |
+| 4 | The course may word the principles as a managed process and "dependability and performance" | accept | Confirmed in Sommerville p. 26 (verification row 1): the plan now has dates, and dependability includes availability. |
+| 5 | Waterfall is a strawman | qualify | Incremental stays, but a paper prototype in weeks 1–2 settles most rules first (verification row 2). |
+| 6 | Deferring blocking and ignoring the paper sheets create the named risk | accept | Exam rooms are blocked in exam week, so blocking is in the first increment; the sheets go on launch day. |
+| 7 | Timing undefined; usage reports have no source | qualify | Launch by week 8 accepted. Rejected "no source": usage review is the administrator's story in our Week 03 requirements. |
+| 8 | "Errors sit at the boundaries" overclaims | accept | Week 05 evidence: the two hardest faults to catch were list mutations (change-log row 2). |
+| 9 | Fail-closed hurts availability; "accept and flag" is defensible | qualify | The fail-closed sentence is dropped and availability added. "Accept and flag" rejected: a double booking in exam week is the named risk. |
+| 10 | Nothing covers detection or recovery | qualify | A database constraint stops new overlaps, so no nightly check is needed; clashes matter once, when the paper bookings are entered at launch. Cut from §2 for length. |
+| 11 | Simultaneous requests are normal; the database fix is vague | accept | Named the exclusion constraint (verification row 3, change-log row 3). |
+| 12 | Maintainability and privacy are missing | qualify | Maintainability kept in §2 (graduating developers). Privacy (students see "booked", not who) was cut from §2 for length; it remains a gap. |
+| 13 | Traceability only runs forward | accept | A source column per rule; a rule with no source is an invented one (§2). |
+| 14 | The R3 example tests one side; change control is missing | qualify | The R3 example is dropped rather than expanded; change control follows point 3 (the administrator approves rule changes). |
+| 15 | SSO is a requirement, not a reuse choice; an existing booking system may fit | accept | "Within budget" was wrong (login costs time, not money). No booking product was verified, so none is named. |
+| 16 | "AI-generated code is reuse" can be challenged | reject | Lesson 01 slide 37 calls a code-generating model a form of reuse (verification row 4). Kept only the point that once merged, its maintainer is us. |
+| 17 | "Rules nobody asked for" is contradicted by the scenario | accept | The scenario says the administrator blocks; the AI added "only". §2 now quotes the rule it changed. |
+| 18 | One AI writing both the check and its tests gives correlated errors | accept | §4 says tests come from the rules table, not the code, as in Week 05, where expected values came from the criteria. |

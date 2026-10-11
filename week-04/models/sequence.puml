@@ -1,0 +1,62 @@
+@startuml sequence
+title Book room (US-01) - rules R1, R3, R2, then R4 (revised)
+
+skinparam shadowing false
+autonumber
+
+actor Student
+participant "BookingService" as BS <<service>>
+participant "BookingRepository" as BR <<repository>>
+
+Student -> BS : bookRoom(studentId, roomId, start, duration)
+activate BS
+
+BS -> BS : validateTimeSlot(start, duration)
+note right
+  R1: start > now
+  and 0 < duration <= 2 h
+end note
+
+alt R1 violated
+  BS --> Student : rejected(INVALID_TIME_SLOT)
+else time slot valid
+  group atomic per room (A4)
+  BS -> BR : isRoomBlocked(roomId)
+  activate BR
+  BR --> BS : blocked : Boolean
+  deactivate BR
+
+  alt room blocked (R3)
+    BS --> Student : rejected(ROOM_BLOCKED)
+  else room not blocked
+    BS -> BR : findActiveOverlapping(roomId, start, duration)
+    activate BR
+    BR --> BS : overlapping : Booking[*]
+    deactivate BR
+    note right
+      R2: ACTIVE bookings of this room only;
+      half-open intervals, touching is allowed (A2)
+    end note
+
+    alt overlapping not empty (R2)
+      BS --> Student : rejected(OVERLAPS_EXISTING_BOOKING)
+    else slot free
+      BS -> BS : create Booking(studentId, roomId, start, duration, ACTIVE) with its Confirmation
+      BS -> BR : save(booking)
+      activate BR
+      BR --> BS : saved(bookingId)
+      deactivate BR
+      BS --> Student : confirmation : Confirmation
+      note right : R4
+    end
+  end
+  end
+end
+
+note over BS, BR
+  A4: the blocked check, the overlap query and save run as one
+  atomic unit per room, so two concurrent requests cannot both pass R2.
+end note
+
+deactivate BS
+@enduml

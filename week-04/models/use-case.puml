@@ -1,0 +1,58 @@
+@startuml use-case
+title Smart Campus - Study Room Booking\nUse-case diagram (revised)
+
+left to right direction
+skinparam shadowing false
+
+actor Student
+actor Administrator
+
+rectangle "Smart Campus Study Room Booking System" {
+  usecase "View room availability" as UC_View
+  usecase "Book room" as UC_Book
+  usecase "Cancel own booking" as UC_Cancel
+  usecase "Block room" as UC_Block
+  usecase "Unblock room" as UC_Unblock
+  usecase "Review room usage" as UC_Review
+}
+
+' Student goals: US-01, US-02, US-03
+Student -- UC_View
+Student -- UC_Book
+Student -- UC_Cancel
+
+' Administrator goals: US-04, US-05, US-06
+UC_Block   -- Administrator
+UC_Unblock -- Administrator
+UC_Review  -- Administrator
+
+note right of UC_Book
+  US-01. Checked before the booking is created:
+  R1 future start, 0 < duration <= 2 h
+  R3 room not blocked
+  R2 no overlap with an active booking of the
+     same room; touching is allowed (A2)
+  R4 on success the Student gets a confirmation -
+     an outcome of Book room, not a separate goal
+end note
+
+note right of UC_Block
+  US-04 / R3: stops NEW bookings only.
+  Existing bookings are kept (A1).
+end note
+
+note right of UC_Unblock
+  US-05 / R3: once unblocked, new bookings are
+  accepted again (still subject to R1, R2).
+end note
+
+note right of UC_View
+  US-02: "free" = not blocked (R3) and no ACTIVE
+  booking overlaps the slot (R2) - A3
+end note
+
+note right of UC_Cancel
+  US-03: only the student who made the booking;
+  the cancelled booking stops counting for R2.
+end note
+@enduml

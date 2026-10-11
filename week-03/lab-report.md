@@ -555,7 +555,7 @@ PASS   counts.user_stories                       7
 PASS   counts.acceptance_criteria_sets           3
 PASS   checker                                   23 PASS � 0 FAIL � 0 ERROR
 NOTE   checker                                   you are claiming a clean run � it will be re-run at your commit, so make sure it is true
-PASS   checker.commit                            b79183b
+PASS   checker.commit                            b97e1c5
 PASS   assumptions.overlap_touching_bookings     allowed
 PASS   assumptions.exactly_two_hours             allowed
 PASS   traceability.use_cases_not_covered        UC-01, UC-05
@@ -577,12 +577,12 @@ Fix the FAIL and ERROR lines above, then run this again before you push.
 | --- | --- | --- | --- |
 | `check_requirements.py` | 23 | 0 | 0 |
 
-Commit these numbers were produced at (`git rev-parse --short HEAD`): `b79183b`
+Commit these numbers were produced at (`git rev-parse --short HEAD`): `b97e1c5`
 
 **Every FAIL, one line each: what it is and what you decided to do about it.** A FAIL you report and
 explain costs you nothing.
 
-- `check_requirements.py`: no FAIL at `b79183b`. The first full run (before `24bba03`) had
+- `check_requirements.py`: no FAIL at `b97e1c5`. The first full run (before `24bba03`) had
   **US-7 FAIL: "out-of-scope vocabulary: attendance, reminder"**. Both words were in assumptions
   that *exclude* those things (US-04 "no other messages, such as reminders", US-07 "attendance
   is out of scope"). Nothing was widened, but naming an excluded feature is not needed to exclude

@@ -210,7 +210,7 @@ Paste the complete output of `python tests/check_models.py`, then explain **ever
 keeping**. The same IDs go in `submission.yml` under `checker.kept_fails`. A FAIL you report and explain costs you nothing. One you hide costs the whole criterion.
 
 ```text
-$ python tests/check_models.py      # at commit 3a6ebc0
+$ python tests/check_models.py      # at commit 973eb27
 Week 04 structural check - shape only, never quality
 
 UC1  PASS  Student and Administrator declared

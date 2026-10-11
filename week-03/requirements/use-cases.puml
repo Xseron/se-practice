@@ -1,0 +1,43 @@
+@startuml use-cases
+' Use-case diagram - Smart Campus study room booking (revised from the assistant's draft,
+' see lab-report.md sections 6-7). Two actors outside the boundary, six use cases inside.
+
+left to right direction
+skinparam shadowing false
+
+actor Student
+actor Administrator
+
+rectangle "Smart Campus study room booking" {
+  usecase "View availability"      as UC01
+  usecase "Book room"              as UC02
+  usecase "Cancel booking"         as UC03
+  usecase "Block or unblock room"  as UC04
+  usecase "Review usage"           as UC05
+  usecase "Send confirmation"      as UC06
+
+  ' why: UC-06 says the system confirms every successful booking - it is a mandatory part of Book room, not an option
+  UC02 ..> UC06 : <<include>>
+  ' why: UC-06 also confirms every successful cancellation
+  UC03 ..> UC06 : <<include>>
+}
+
+' Student triggers these three (US-01, US-02, US-03)
+Student -- UC01
+Student -- UC02
+Student -- UC03
+
+' Administrator triggers these two (US-05, US-06, US-07)
+UC04 -- Administrator
+UC05 -- Administrator
+
+' No actor triggers Send confirmation: the system performs it inside UC-02 / UC-03 (US-04)
+
+note bottom of UC02
+  R1 start in the future (start = now is rejected)
+  R2 at most two hours (exactly 2 h is allowed)
+  R3 no overlap for the same room
+     (ending when another begins is allowed)
+  R4 blocked room cannot be booked
+end note
+@enduml

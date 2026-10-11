@@ -1,0 +1,246 @@
+Revise the UML sources using only my accepted review decisions: 
+(1) D1: delete C4 (offering identity) from the CourseOffering note.
+(2) D2, modified: write the three guards as plain conditions, in this order: "already enrolled", "not enrolled and course full (free = 0)", "not enrolled and places left (free > 0)"; move the rule and AC tags out of the guards into the atomic note.
+(3) D3, modified: send catalogEntry() to a per-offering lifeline named "offering : CourseOffering", with no [i] selector; the collection lifeline only answers the semester selection; write the self-call on one line as "availablePlaces() := capacity - number of enrollments".
+(4) D4: replace {unique} with {id} on Student.studentId and Course.code.
+(5) O1: replace "group atomic [...]" with a "critical" fragment whose label contains the word atomic, and keep the atomic note.
+(6) O2: add a delay ("...") between browsing and the request, saying that other students may register meanwhile and that the catalog view reserved nothing (A1).
+(7) O6: remove Enrollment.registeredAt.
+(8) O8, narrowed: add only enroll(student : Student) to CourseOffering.
+(9) O9, only the parts that still apply: C2 in OCL derive form, constraint labels C1 to C3 in order, the Enrollment note cites A3 instead of "see the sequence diagram", the AC-01 note says "SE-201 Section A".
+(10) M1 (mine): remove the Semester class and the Semester lifeline; CourseOffering gets "semester : String"; the controller asks the offerings collection for the offerings of one semester.
+(11) M2 (mine): write every multiplicity as a plain "1" or "0..*" with no role name in the same string, name the associations "holds >" and "receives >", drop the -right- direction, and write the OCL with default end names (enrollment, student).
+(12) M3 (mine): name the actor "Student", the same as the class; "signed in" stays in the precondition note. Keep justified existing elements and explain each change.
+Preserve the agreed scope and rule IDs. Return both updated PlantUML blocks and a concise change log. Flag any unresolved issue.
+Approved requirements: 
+
+**Scope:** One signed-in student browses the catalog of one semester, which shows each offering's course code, title, section and available places, picks a course offering and asks to register. When the request arrives the system rechecks, in one atomic operation, whether the student already holds an Enrollment in that offering and whether a place is still free, then either creates exactly one Enrollment and confirms it, or rejects the request with "already enrolled" or "course full" and changes nothing.
+
+**Out of scope:** payments, prerequisites, timetable clashes, waiting lists and cancellation, which the scenario excludes. Also not modeled: how the confirmation is delivered, technical failures outside R5, and any database detail beyond a note that the final checks and the creation are atomic.
+
+**Assumptions:**
+
+1. A catalog view reserves nothing; the available places a student saw can be out of date when the request arrives, which is why R2 rechecks them.
+2. Available places = capacity − number of Enrollments of the offering. They are derived, not stored, so creating the Enrollment is the availability update that R4 asks for (B1 uncertainty U-04).
+3. The duplicate check, the capacity check and the creation of the Enrollment form one atomic operation per offering. This covers two students asking for the last place at once and also one student sending the same request twice at once (B1 suggested extending my initial assumption 4 to duplicates; accepted).
+4. If a request is both a repeat and for a full offering, the reason is "already enrolled": the duplicate check runs first, because that answer is true whatever the capacity (B1 uncertainty U-01, my decision).
+5. R3 limits repeats in the same offering only. Whether a student may hold places in two sections of one course is not decided by the rules, and no policy is added for it (U-02).
+6. Full offerings stay in the catalog with 0 available places; the catalog is asked for one semester at a time (U-05, U-06).
+7. Example data is fictional: students Lena Ortiz (ST-1001), Tomas Reyes (ST-1002) and Mira Holm (ST-1003); courses SE-201 "Software Requirements" and MA-110 "Discrete Structures"; semester Autumn 2026.
+
+### US-01 — Browse offerings
+
+**US-01:** As a student, I want to see one semester's course offerings with their available places, so that I can choose an offering to register for.
+
+- **AC-01** (R1): Given the Autumn 2026 catalog holds SE-201 "Software Requirements" Section A (capacity 2, 0 Enrollments) and MA-110 "Discrete Structures" Section A (capacity 20, 20 Enrollments), When Lena views the catalog for Autumn 2026, Then each offering is listed as its own entry with its course code, course title, section and available places, SE-201 Section A showing 2 and MA-110 Section A showing 0.
+- **AC-02** (R1, R2): Given SE-201 Section A has capacity 2 and 1 Enrollment, When Tomas views the Autumn 2026 catalog, Then SE-201 Section A shows 1 available place (capacity minus Enrollments), And the enrollment count stays 1, because viewing the catalog holds no place for Tomas.
+
+### US-02 — Register for an offering
+
+**US-02:** As a student, I want to request registration for the offering I chose, so that I get a confirmed place in it while a place is free.
+
+- **AC-03** (R2, R4): Given SE-201 Section A has capacity 2 and 0 Enrollments and Lena has no Enrollment in it, When Lena requests registration for SE-201 Section A, Then availability is rechecked at that moment, exactly one Enrollment linking Lena and SE-201 Section A is created, the enrollment count becomes 1 with 1 place left, And Lena receives a confirmation.
+- **AC-04** (R2, R4, R5): Given SE-201 Section A has capacity 2 and 1 Enrollment and neither Tomas nor Mira holds an Enrollment in it, When Tomas and Mira request registration for SE-201 Section A at almost the same moment, Then exactly one of them gets a new Enrollment and a confirmation and the enrollment count becomes 2 with no place left, And the other is rejected with "course full" and gets no Enrollment, so the count never exceeds 2.
+
+### US-03 — Receive a clear rejection
+
+**US-03:** As a student, I want a clear reason when my registration request is rejected, so that I know why and that nothing was recorded.
+
+- **AC-05** (R2, R5): Given Mira saw 1 available place for SE-201 Section A in the catalog, that place has since been taken so the offering now has 2 Enrollments for capacity 2, and Mira holds no Enrollment in it, When Mira requests registration for SE-201 Section A, Then the request is rejected with the reason "course full", And no Enrollment is created and the enrollment count stays 2.
+- **AC-06** (R3, R5): Given SE-201 Section A has capacity 2 and 1 Enrollment, which is Lena's, When Lena requests registration for SE-201 Section A again, Then the request is rejected with the reason "already enrolled", And no Enrollment is created, the enrollment count stays 1 and Lena still holds exactly one Enrollment in it.. Original sources: 
+
+models/original/sequence.puml:
+
+```plantuml
+@startuml registration_sequence
+title Browse catalog and register for a course offering (R1–R5)
+hide footbox
+autonumber
+
+actor "Student\n(signed in)" as S
+boundary ":RegistrationUI" as UI
+control ":RegistrationController" as Ctrl
+entity "autumn2026 : Semester" as Sem
+collections "offerings : CourseOffering" as Offs
+entity "chosen : CourseOffering" as Off
+
+note over S, Off
+  Preconditions: the student is signed in, the chosen offering exists and
+  its capacity is a positive whole number. "chosen" is one of the listed offerings.
+  Example run: Lena Ortiz (ST-1001) browses Autumn 2026 and chooses SE-201 Section A.
+end note
+
+== Browse the catalog (R1, US-01) ==
+
+S -> UI : viewCatalog("Autumn 2026")
+activate UI
+UI -> Ctrl : getCatalog("Autumn 2026")
+activate Ctrl
+Ctrl -> Sem : getOfferings()
+activate Sem
+Sem --> Ctrl : offerings
+deactivate Sem
+
+loop for each offering of the semester
+  Ctrl -> Offs : catalogEntry()
+  activate Offs
+  Offs -> Offs : availablePlaces()\n= capacity - number of enrollments
+  Offs --> Ctrl : course code, title, section, available places
+  deactivate Offs
+end
+
+Ctrl --> UI : catalog entries
+deactivate Ctrl
+UI --> S : one entry per offering
+deactivate UI
+
+note over S, Ctrl
+  AC-01: SE-201 "Software Requirements" A shows 2;
+  MA-110 "Discrete Structures" A shows 0 (full but still listed, A6).
+  Viewing reserves no place (A1, AC-02), so the number shown may be stale.
+end note
+
+== Request registration (R2–R5, US-02, US-03) ==
+
+S -> UI : requestRegistration(chosen)
+activate UI
+UI -> Ctrl : register(student, chosen)
+activate Ctrl
+
+group atomic [final checks + creation, one operation per offering]
+  Ctrl -> Off : enroll(student)
+  activate Off
+
+  note over Ctrl, Off
+    One atomic operation per offering (A3): the duplicate check, the capacity
+    recheck and the creation run with no other enroll() on this offering in between.
+    AC-04: if Tomas and Mira compete for the last place, whichever runs second
+    sees free = 0 and gets "course full". If one student submits twice, the second
+    request sees alreadyEnrolled. The duplicate check takes precedence (A4).
+    Rejections create nothing and leave the count unchanged (R5).
+  end note
+
+  Off -> Off : alreadyEnrolled := hasEnrollmentFor(student)
+  Off -> Off : free := availablePlaces()
+
+  alt alreadyEnrolled (R3, R5; AC-06)
+    Off --> Ctrl : rejected("already enrolled")
+  else not alreadyEnrolled and free = 0 (R2, R5; AC-05, AC-04 second request)
+    Off --> Ctrl : rejected("course full")
+  else not alreadyEnrolled and free > 0 (R2, R4; AC-03, AC-04 first request)
+    create entity "e : Enrollment" as Enr
+    Off -> Enr : «create»(student, chosen)
+    Off -> Off : add e to enrollments\n(availablePlaces drops by 1)
+    note right of Enr
+      No stored counter (A2): creating e
+      is the availability update.
+      AC-03: 0 -> 1 enrollment, 1 place left.
+    end note
+    Off --> Ctrl : confirmed(e)
+  end
+
+  deactivate Off
+end
+
+Ctrl --> UI : outcome
+deactivate Ctrl
+UI --> S : confirmation, or reason\n"already enrolled" / "course full"
+deactivate UI
+
+@enduml
+```
+
+models/original/classes.puml:
+
+```plantuml
+@startuml registration_domain
+title Domain model: course registration (R1–R5)
+hide circle
+hide empty methods
+skinparam classAttributeIconSize 0
+
+class Student {
+  studentId : String {unique}
+  name : String
+}
+
+class Course {
+  code : String {unique}
+  title : String
+}
+
+class Semester {
+  name : String {unique}
+}
+
+class CourseOffering {
+  section : String
+  capacity : Integer {capacity > 0}
+  /availablePlaces : Integer
+}
+
+class Enrollment {
+  registeredAt : DateTime
+}
+
+Course "1" -- "0..*" CourseOffering : is scheduled as >
+Semester "1" -- "0..*" CourseOffering : offers >
+CourseOffering "offering\n1" -- "enrollments\n0..*" Enrollment
+Student "student\n1" -right- "enrollments\n0..*" Enrollment
+
+note right of Semester
+  Catalog (R1) is a view of one Semester's offerings:
+  course code, title, section and /availablePlaces.
+  It is derived on request, not stored, and reserves nothing (A1).
+  Full offerings stay listed with 0 places (A6).
+end note
+
+note right of CourseOffering
+  <b>C1 Capacity (R2)</b>
+  context CourseOffering
+  inv: capacity > 0
+  inv: enrollments->size() <= capacity
+
+  <b>C2 Derived availability (R1, R4, A2)</b>
+  /availablePlaces = capacity - enrollments->size()
+  so 0 <= availablePlaces <= capacity
+
+  <b>C4 Offering identity (assumption)</b>
+  (course, semester, section) is unique
+end note
+
+note bottom of Enrollment
+  <b>C3 Uniqueness (R3)</b>
+  context CourseOffering
+  inv: enrollments->isUnique(student)
+  At most one Enrollment per (Student, CourseOffering) pair.
+  Nothing is required across sections of one course (A5).
+
+  C1 and C3 are checked, and the Enrollment is created,
+  in one atomic operation per offering (see the sequence
+  diagram), so concurrent requests cannot violate them.
+end note
+
+@enduml
+```. My review decisions and evidence: 
+Accepted or modified:
+- D1 accepted (R1): no rule in R1-R5 and no approved assumption asks for an offering identity; keeping C4 would add a policy nobody approved.
+- D2 modified (R3, R5): in the PNG render of the original, PlantUML printed each guard in brackets with its tags, e.g. "[alreadyEnrolled (R3, R5; AC-06)]". Plain words read as conditions. "not enrolled" is kept in the second and third guards because it keeps the three guards mutually exclusive and the duplicate check first (A4).
+- D3 modified (R1): the per-offering value is what R1 shows (AC-01: 2 versus 0), so the computation belongs on one offering, not on the collection. The suggested name "offerings[i]" is not used: UML 2.5.1, 17.12.17.5 (constraint selector_int_or_string, p. 623) says a lifeline selector must be a LiteralString or a LiteralInteger, and "i" is neither. My own evidence for the one-line label: in the PNG render of the original, the self-call "availablePlaces()\n= capacity - number of enrollments" lost its "=" and its second line came out as a large bold heading, because PlantUML creole reads a line that starts with "=" as a heading.
+- D4 accepted (R1, R3): UML 2.5.1, 7.5.3.2 (p. 34) says isUnique has no semantic effect on an element that is not multivalued, and 9.5.4 (p. 114) says {id} means the property is part of the identifier for the class.
+- O1 accepted (R2): UML 2.5.1, 17.6.3.14 (p. 584) defines critical as a region whose traces cannot be interleaved by other occurrences, which is what "competing requests cannot take the same last place" needs; PlantUML lists critical among its grouping keywords.
+- O2 accepted (R2): it shows in the flow why the request must recheck; AC-05 starts from a stale catalog view.
+- O6 accepted (R4): no rule needs registeredAt and the create message never sets it.
+- O8 narrowed (R2, R3): enroll() is the atomic operation in the sequence diagram, so it is the one operation the class should show; hasEnrollmentFor() and availablePlaces() stay at sequence level.
+- O9 accepted where it still applies: C4 and Semester are gone.
+- M1, mine (R1): Semester has a single attribute and no rule constrains it; R1 needs the semester only as the value that selects the catalog, and the scenario defines a CourseOffering as "one scheduled section in one semester".
+- M2, mine (R3, R4): in the PNG render of the original, the labels "student 1" and "enrollments 0..*" crowd the short -right- link between Student and Enrollment. Plain multiplicities read cleanly at both ends: each Enrollment has exactly 1 Student and 1 CourseOffering.
+- M3, mine (R4): the lifeline and the class must carry the same name so the two diagrams can be compared.
+
+Rejected or not applied:
+- O3 rejected (R3): role names are not needed once the OCL uses default end names, and no rule depends on them.
+- O4 not applied (R1): the Semester lifeline is removed by M1, so there is nothing to look up.
+- O5 rejected (R4): R4 lists "update availability" as its own effect, and the walkthroughs read the count change (0 -> 1, 1 -> 2) at that message. Keep the self-message after the create, but label it "update availability: enrollment count + 1, availablePlaces - 1" so it does not read as a second creation.
+- O7 rejected (R3): an explicit Enrollment class plus the C3 note states R3 openly, and the assignment asks for the uniqueness constraint in a note.
+
+Keep unchanged: the browse section, enroll() on the chosen offering as the atomic boundary, reading alreadyEnrolled and free inside the atomic region, the three replies from the offering, the single outcome reply outside the atomic region, derived availability, C1 and C3..

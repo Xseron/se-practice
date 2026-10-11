@@ -18,6 +18,8 @@ claude -p --model claude-opus-5-5 --safe-mode --tools "" --no-session-persistenc
 | --- | --- | --- |
 | `turn_A.txt` / `resp_A.*` | B1 | Prompt A, requirements |
 | `turn_B.txt` / `resp_B.*` | B2 | Prompt B, UML drafts |
+| `turn_C.txt` / `resp_C.*` | B3 | Prompt C, model critique (a new session, as README §4 requires) |
+| `turn_D.txt` / `resp_D.*` | B4 | Prompt D, focused revision |
 
 Notes:
 
@@ -27,3 +29,9 @@ Notes:
   v2.1.296 binary bundled with the VS Code extension.
 - The `modelUsage` field of each JSON also lists a small `claude-haiku-5-5` call (about 20 output
   tokens) made by the CLI itself. The response text comes from `claude-opus-5-5`.
+- The two PlantUML blocks in `resp_B.md` were copied unchanged into `models/original/` by a script.
+  The two blocks in `resp_D.md` were copied the same way into `models/sequence.puml` and
+  `models/classes.puml`. The agentic Claude Code session then made one more edit to
+  `models/sequence.puml` (message 6, `report.md` §7) and added a header comment to each file. Prompt D's response
+  labels its blocks "models/original/…". That heading is the assistant's; the originals were not
+  overwritten.

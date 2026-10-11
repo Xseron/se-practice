@@ -1,0 +1,36 @@
+@startuml smart_campus_use_cases
+title Smart Campus - Study Room Booking\nUse-case diagram
+
+left to right direction
+skinparam shadowing false
+
+actor Student
+actor Administrator
+
+rectangle "Smart Campus Study Room Booking System" {
+  usecase "View room availability\n<size:10>US-02</size>"            as UC_View
+  usecase "Book study room\n<size:10>US-01 | R1, R2, R3, R4</size>"  as UC_Book
+  usecase "Cancel own booking\n<size:10>US-03 | R2</size>"           as UC_Cancel
+  usecase "Block room\n<size:10>US-04 | R3</size>"                   as UC_Block
+  usecase "Unblock room\n<size:10>US-05 | R3</size>"                 as UC_Unblock
+  usecase "Review room usage\n<size:10>US-06</size>"                 as UC_Review
+}
+
+' Student goals. Actor is written first so it is placed on the left.
+Student -- UC_View
+Student -- UC_Book
+Student -- UC_Cancel
+
+' Administrator goals. Use case is written first so the actor is placed on the right.
+UC_Block   -- Administrator
+UC_Unblock -- Administrator
+UC_Review  -- Administrator
+
+legend right
+  <b>Business rules</b>
+  R1  Future start; duration greater than 0 and at most 2 hours
+  R2  Active bookings for the same room cannot overlap
+  R3  A blocked room cannot accept a new booking
+  R4  A successful booking produces a confirmation
+endlegend
+@enduml
